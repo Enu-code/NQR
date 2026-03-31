@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign Up — NQR</title>
+<link rel="stylesheet" href="styles.css?v=2"/>
+<script src="config.js"></script>
+<script src="backend.js"></script>
+<style>
+/* ── Auth Layout (Shared with Login) ── */
+.auth-page {
+  display: flex;
+  min-height: 100vh;
+  background: var(--c-navy-deep);
+}
+.auth-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--sp-2xl);
+  position: relative;
+  z-index: 10;
+}
+.auth-right {
+  flex: 1;
+  background: var(--g-bg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--sp-4xl);
+}
+.auth-right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.auth-right-content {
+  position: relative;
+  z-index: 1;
+  max-width: 440px;
+}
+.auth-glow-blob {
+  position: absolute;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(32,48,111,0.5) 0%, transparent 70%);
+  filter: blur(60px);
+  top: 10%; right: -20%;
+  pointer-events: none;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 440px;
+}
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-2xl);
+  justify-content: center;
+}
+.auth-logo-mark {
+  width: 32px; height: 32px;
+  background: var(--g-red);
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: white;
+}
+.auth-logo-text { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; }
+
+.auth-social {
+  display: flex;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-lg);
+}
+.auth-social .btn { flex: 1; justify-content: center; background: rgba(255,255,255,0.05); border-color: transparent; }
+.auth-social .btn:hover { background: rgba(255,255,255,0.1); }
+
+@media (max-width: 900px) {
+  .auth-right { display: none; }
+  .auth-left { padding: var(--sp-xl) var(--sp-md); }
+}
+</style>
+</head>
+<body class="auth-page">
+
+<div class="auth-left">
+  <div class="auth-box anim-fade-up">
+    <a href="index.html" class="auth-logo">
+      <div class="auth-logo-mark">
+        <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+      </div>
+      <div class="auth-logo-text">NQR</div>
+    </a>
+    <div class="text-center mb-md">
+      <a href="index.html" class="t-small text-muted" style="text-decoration:none">← Back to Public Site</a>
+    </div>
+    
+    <div class="text-center mb-xl">
+      <h1 class="t-h2">Create your account</h1>
+      <p class="t-small text-muted mt-xs">No credit card required for the free plan.</p>
+    </div>
+
+    <div id="signupError" style="color: #ef233c; background: rgba(239, 35, 60, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; font-size: 0.9rem; text-align: center; border: 1px solid rgba(239, 35, 60, 0.2);"></div>
+
+    <form onsubmit="handleSignupSubmit(event, this)">
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:var(--sp-md);margin-bottom:var(--sp-md)">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input type="text" class="form-input" placeholder="Jane" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input type="text" class="form-input" placeholder="Doe" required/>
+        </div>
+      </div>
+      
+      <div class="form-group mb-md">
+        <label class="form-label">Work Email</label>
+        <input type="email" class="form-input" placeholder="jane@company.com" required/>
+      </div>
+      
+      <div class="form-group mb-lg">
+        <label class="form-label">Password</label>
+        <div style="position:relative;">
+          <input type="password" id="signupPassword" class="form-input" placeholder="At least 8 characters" style="padding-right:40px;" required/>
+          <button type="button" id="toggleSignupPasswordBtn" class="toggle-password hidden" aria-label="Toggle password visibility">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="eye-icon">
+              <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pupil"/>
+              <path d="M3 21L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="slash"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn btn--primary w-full justify-center btn--lg">Start Free Trial</button>
+      
+      <p class="t-small text-muted text-center mt-md" style="font-size:0.75rem">
+        By signing up, you agree to our <a href="#" class="text-red">Terms of Service</a> and <a href="#" class="text-red">Privacy Policy</a>.
+      </p>
+    </form>
+
+
+
+    <div class="text-center mt-xl t-small text-muted">
+      Already have an account? <a href="user-login.html" class="text-red" style="font-weight:600">Log In</a>
+    </div>
+  </div>
+</div>
+
+<div class="auth-right">
+  <div class="auth-glow-blob"></div>
+  <div class="auth-right-content anim-fade-up" style="animation-delay:0.2s">
+    <div class="icon-wrap icon-wrap--red icon-wrap--lg mb-lg">
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <h2 class="t-h1 gradient-text" style="font-size:3rem">Secure sharing.<br/>Zero friction.</h2>
+    <p class="t-large text-muted mt-lg">Join the world's best product teams using NQR to share files, links, and experiences securely with partners and customers worldwide.</p>
+    
+    <div class="mt-xl flex items-center gap-md">
+      <div class="flex -space-x-3">
+        <div class="w-8 h-8 rounded-full bg-c-surface-2 border-2 border-c-navy-deep z-10" style="background:#ff6b7a"></div>
+        <div class="w-8 h-8 rounded-full bg-c-surface-3 border-2 border-c-navy-deep z-20" style="background:#2A3E8F"></div>
+        <div class="w-8 h-8 rounded-full bg-c-border border-2 border-c-navy-deep z-30" style="background:#4ade80"></div>
+      </div>
+      <div class="t-small text-muted">Over 2 million QRs generated</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const toggleSignupBtn = document.getElementById('toggleSignupPasswordBtn');
+const signupPasswordInput = document.getElementById('signupPassword');
+if (toggleSignupBtn && signupPasswordInput) {
+  toggleSignupBtn.addEventListener('click', () => {
+    toggleSignupBtn.classList.toggle('hidden');
+    const isPassword = signupPasswordInput.getAttribute('type') === 'password';
+    signupPasswordInput.setAttribute('type', isPassword ? 'text' : 'password');
+  });
+}
+
+async function handleSignupSubmit(e, form) {
+  e.preventDefault();
+  const errorEl = document.getElementById('signupError');
+  errorEl.style.display = 'none';
+  
+  const firstName = form.querySelector('input[placeholder="Jane"]').value;
+  const lastName = form.querySelector('input[placeholder="Doe"]').value;
+  const email = form.querySelector('input[type=email]').value;
+  const password = form.querySelector('input[type=password]').value;
+
+  if (!email.toLowerCase().endsWith('@neverno.in')) {
+    errorEl.textContent = 'Registration restricted. Please use an @neverno.in email address.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    await window.API.signup({ firstName, lastName, email, password });
+    window.location.href = 'app-generator.html';
+  } catch (err) {
+    errorEl.textContent = err.message || 'Signup failed. Please try again.';
+    errorEl.style.display = 'block';
+  }
+}
+</script>
+
+</body>
+</html>

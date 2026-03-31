@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Features — NQR</title>
+<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="home.css"/>
+<script src="config.js"></script>
+<script src="backend.js"></script>
+<style>
+/* ── Features Page Specific ── */
+.feat-hero {
+  padding: calc(var(--sp-4xl) * 1.5) 0 var(--sp-4xl);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--g-bg);
+}
+.feat-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(217, 4, 41, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.feat-showcase {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-4xl);
+  margin-top: var(--sp-2xl);
+}
+
+.showcase-item {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--sp-3xl);
+  align-items: center;
+}
+
+.showcase-item:nth-child(even) {
+  grid-template-columns: 1.2fr 1fr;
+}
+
+.showcase-item:nth-child(even) .showcase-text { order: 2; }
+.showcase-item:nth-child(even) .showcase-visual { order: 1; }
+
+.showcase-visual {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-2xl);
+  padding: var(--sp-4xl) var(--sp-2xl);
+  position: relative;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+}
+
+.showcase-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(217, 4, 41, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.feat-icon-badge {
+  width: 48px; height: 48px;
+  border-radius: var(--r-md);
+  background: var(--c-red-soft);
+  color: var(--c-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--sp-lg);
+}
+
+.visual-mock {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  transform: rotateY(-10deg) rotateX(4deg);
+  transition: all 0.6s var(--ease-out);
+  box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+  border-radius: 24px;
+  overflow: hidden; /* Local overflow is fine if padding is correct */
+}
+
+.showcase-item:hover .visual-mock {
+  transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+}
+
+@media (max-width: 992px) {
+  .showcase-item, .showcase-item:nth-child(even) {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .showcase-item .showcase-text, .showcase-item .showcase-visual {
+    order: unset !important;
+  }
+  .feat-icon-badge { margin-left: auto; margin-right: auto; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav">
+  <div class="nav__inner">
+    <a href="index.html" class="nav__logo">
+      <div class="nav__logo-mark">
+        <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+      </div>
+      <div>
+        <div class="nav__logo-text">NQR</div>
+        <div class="nav__logo-powered">Powered by Neverno</div>
+      </div>
+    </a>
+    <ul class="nav__links">
+      <li><a href="app-generator.html" class="nav__link">Generator</a></li>
+      <li><a href="usecases.html" class="nav__link">Solutions</a></li>
+      <li><a href="security.html" class="nav__link">Security</a></li>
+    </ul>
+    <div class="nav__cta hide-mobile">
+      <a href="user-login.html" class="btn btn--ghost btn--sm">Sign In</a>
+      <a href="user-login.html" class="btn btn--primary btn--sm">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<section class="feat-hero">
+  <div class="container">
+    <div class="section-badge anim-fade-up">Platform Features</div>
+    <h1 class="t-hero mt-md anim-fade-up anim-fade-up--d1">Engineered for<br/><span class="gradient-text">perfection.</span></h1>
+    <p class="t-large text-muted mt-lg anim-fade-up anim-fade-up--d2" style="max-width:700px;margin-left:auto;margin-right:auto;">From real-time tracking to enterprise-grade encryption, NQR provides the most advanced QR management suite on the market.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="container container--wide">
+    <div class="feat-showcase">
+      
+      <!-- Feature 1: Dynamic QRs -->
+      <div class="showcase-item anim-fade-up">
+        <div class="showcase-text">
+          <div class="feat-icon-badge">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </div>
+          <h2 class="t-h1 mb-md">Dynamic QR Magic</h2>
+          <p class="t-body text-muted mb-lg">Never reprint a QR code again. Change the destination URL, file, or content of your live QR codes in real-time, instantly reflecting across the globe.</p>
+          <ul class="sol-list">
+            <li class="sol-list-item"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Instant destination swaps</li>
+            <li class="sol-list-item"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Scheduled URL rotations</li>
+            <li class="sol-list-item"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Error correction for damaged prints</li>
+          </ul>
+        </div>
+        <div class="showcase-visual anim-fade-up">
+          <img src="assets/feat-dynamic.png" alt="Dynamic QR Dashboard" class="visual-mock">
+        </div>
+      </div>
+
+      <!-- Feature 2: Analytics -->
+      <div class="showcase-item">
+        <div class="showcase-visual anim-fade-up">
+          <img src="assets/feat-analytics.png" alt="QR Analytics Heatmap" class="visual-mock">
+        </div>
+        <div class="showcase-text">
+          <div class="feat-icon-badge">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+          </div>
+          <h2 class="t-h1 mb-md">Deep Scan Analytics</h2>
+          <p class="t-body text-muted mb-lg">Understand exactly who is scanning your codes. Get real-time data on geographic location, device types, operating systems, and referral paths.</p>
+          <ul class="sol-list">
+            <li class="sol-list-item"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Precise GPS heatmap data</li>
+            <li class="sol-list-item"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Device & OS breakdown</li>
+            <li class="sol-list-item"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Real-time conversion tracking</li>
+          </ul>
+        </div>
+      </div>
+
+       <!-- Feature 3: Customization -->
+      <div class="showcase-item">
+        <div class="showcase-text">
+          <div class="feat-icon-badge">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+          </div>
+          <h2 class="t-h1 mb-md">Brand Perfection</h2>
+          <p class="t-body text-muted mb-lg">Your QR codes shouldn't look like generic static. Customize every pixel to match your brand identity with precision and style.</p>
+          <ul class="sol-list">
+            <li class="sol-list-item"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Custom logo embeds</li>
+            <li class="sol-list-item"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Gradient & pattern controls</li>
+            <li class="sol-list-item"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Eye & frame customization</li>
+          </ul>
+        </div>
+        <div class="showcase-visual anim-fade-up">
+          <img src="assets/feat-custom.png" alt="Brand Customization Interface" class="visual-mock">
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container text-center">
+    <h2 class="t-h1 mb-md">Ready to experience it?</h2>
+    <p class="t-large text-muted mb-xl">Start building your first premium QR code in seconds.</p>
+    <a href="app-generator.html" class="btn btn--primary btn--lg">Open Generator</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container container--wide">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="nav__logo">
+          <div class="nav__logo-mark">
+            <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+          </div>
+          <div class="nav__logo-text">NQR</div>
+        </a>
+        <p>Building the future of secure, beautiful QR sharing. Powered by Neverno.</p>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Product</h4>
+        <ul class="footer__links">
+          <li><a href="app-generator.html" class="footer__link">Generator</a></li>
+          <li><a href="features.html" class="footer__link">Features</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Solutions</h4>
+        <ul class="footer__links">
+          <li><a href="usecases.html" class="footer__link">Use Cases</a></li>
+          <li><a href="security.html" class="footer__link">Security</a></li>
+          <li><a href="faq.html" class="footer__link">Help Center</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Social</h4>
+        <ul class="footer__links">
+          <li><a href="#" class="footer__link">Twitter</a></li>
+          <li><a href="#" class="footer__link">LinkedIn</a></li>
+          <li><a href="#" class="footer__link">Instagram</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Legal</h4>
+        <ul class="footer__links">
+          <li><a href="#" class="footer__link">Privacy</a></li>
+          <li><a href="#" class="footer__link">Terms</a></li>
+          <li><a href="#" class="footer__link">Security</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© 2026 NQR — Smart QR Management. All rights reserved.</p>
+      <div class="footer__powered">
+        <div class="footer__powered-dot"></div>
+        <span>Distributed by Neverno Digital</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>

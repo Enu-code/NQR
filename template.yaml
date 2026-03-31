@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: NQR Production Backend - SAM Infrastructure
+
+Resources:
+  NqrApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./lambda/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref NqrUsersTable
+          QRS_TABLE: !Ref NqrQrsTable
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref NqrUsersTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref NqrQrsTable }
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+        ScanRedirect:
+          Type: Api
+          Properties:
+            Path: /s/{qrId}
+            Method: GET
+
+  NqrUsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: NqrUsers
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  NqrQrsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: NqrQrs
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  ApiUrl:
+    Description: "NQR Production API URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"

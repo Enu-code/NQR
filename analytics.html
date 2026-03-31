@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Analytics — NQR</title>
+<script src="config.js"></script>
+<script src="backend.js"></script>
+<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="dashboard.css"/>
+</head>
+<body class="dash-body">
+
+<div class="dash-layout">
+  
+  <!-- ═══════════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════════════ -->
+  <aside class="dash-sidebar">
+    <div class="dash-brand">
+      <div class="nav__logo-mark">N</div>
+      <div class="nav__logo-text">NQR</div>
+    </div>
+    
+    <nav class="dash-nav mt-xl">
+      <div class="dash-nav-group">
+        <div class="t-label mb-sm" style="padding:0 12px;color:var(--c-text-3)">Workspace</div>
+        <a href="index.html" class="dash-nav-item">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Overview
+        </a>
+        <a href="generator.html" class="dash-nav-item">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m0 0h3m-3 0v3"/></svg>
+          QR Generator
+        </a>
+        <a href="#" class="dash-nav-item">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          File Transfers
+        </a>
+        <a href="analytics.html" class="dash-nav-item active">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Analytics
+        </a>
+      </div>
+
+      <div class="dash-nav-group mt-xl">
+        <div class="t-label mb-sm" style="padding:0 12px;color:var(--c-text-3)">Settings</div>
+        <a href="#" class="dash-nav-item">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          Settings
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════════ -->
+  <main class="dash-main">
+    <header class="dash-header mb-xl">
+      <div>
+        <h1 class="t-h3">Global Analytics</h1>
+        <p class="t-small text-muted mt-xs">Detailed insights across all your QR campaigns.</p>
+      </div>
+      <div class="flex gap-md">
+        <select class="form-input" style="padding:0.4rem 1rem">
+          <option>All QR Codes</option>
+          <option>Link QRs</option>
+          <option>File Transfers</option>
+        </select>
+        <select class="form-input" style="padding:0.4rem 1rem">
+          <option>Last 30 Days</option>
+          <option>Last 7 Days</option>
+          <option>All Time</option>
+        </select>
+        <button class="btn btn--secondary btn--sm">Export CSV</button>
+      </div>
+    </header>
+
+    <div class="dash-content">
+      
+      <!-- Top Metrics -->
+      <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:var(--sp-md);margin-bottom:var(--sp-xl)">
+        <div class="card card--static p-lg">
+          <div class="t-label text-muted mb-sm">Total Scans</div>
+          <div class="t-h1">12.4k</div>
+          <div class="dash-stat-trend up mt-sm">↑ 24% from previous period</div>
+        </div>
+        <div class="card card--static p-lg">
+          <div class="t-label text-muted mb-sm">Unique Scanners</div>
+          <div class="t-h1">8.2k</div>
+          <div class="dash-stat-trend up mt-sm">↑ 18% from previous period</div>
+        </div>
+        <div class="card card--static p-lg">
+          <div class="t-label text-muted mb-sm">Avg. Scans / Day</div>
+          <div class="t-h1">413</div>
+          <div class="dash-stat-trend neutral mt-sm">Steady volume</div>
+        </div>
+      </div>
+
+      <!-- Detail Breakdowns -->
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:var(--sp-lg)">
+        
+        <!-- OS / Device Breakdown -->
+        <div class="card card--static">
+          <div class="card-inner">
+            <h3 class="t-h4 mb-md">Scans by Operating System</h3>
+            <div class="mt-lg">
+              <div class="flex justify-between t-small mb-xs"><span>iOS (Apple)</span><span style="font-weight:600">62%</span></div>
+              <div class="progress-bar mb-md"><div class="progress-fill" style="width:62%;background:var(--c-blue-light)"></div></div>
+              
+              <div class="flex justify-between t-small mb-xs"><span>Android</span><span style="font-weight:600">34%</span></div>
+              <div class="progress-bar mb-md"><div class="progress-fill" style="width:34%;background:#4ade80"></div></div>
+              
+              <div class="flex justify-between t-small mb-xs"><span>Windows / Mac (Desktop)</span><span style="font-weight:600">4%</span></div>
+              <div class="progress-bar mb-md"><div class="progress-fill" style="width:4%;background:var(--c-text-3)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Breakdown -->
+        <div class="card card--static">
+          <div class="card-inner">
+            <h3 class="t-h4 mb-md">Top Locations</h3>
+            <ul class="mt-md" style="list-style:none">
+              <li class="flex items-center justify-between py-xs border-b border-c-border pb-sm mb-sm text-sm">
+                <span class="flex items-center gap-sm"><span class="text-xl">🇺🇸</span> United States</span>
+                <span class="font-mono text-muted">5,412 scans</span>
+              </li>
+              <li class="flex items-center justify-between py-xs border-b border-c-border pb-sm mb-sm text-sm">
+                <span class="flex items-center gap-sm"><span class="text-xl">🇬🇧</span> United Kingdom</span>
+                <span class="font-mono text-muted">3,801 scans</span>
+              </li>
+              <li class="flex items-center justify-between py-xs border-b border-c-border pb-sm mb-sm text-sm">
+                <span class="flex items-center gap-sm"><span class="text-xl">🇮🇳</span> India</span>
+                <span class="font-mono text-muted">2,140 scans</span>
+              </li>
+              <li class="flex items-center justify-between py-xs pb-sm text-sm">
+                <span class="flex items-center gap-sm"><span class="text-xl">🇨🇦</span> Canada</span>
+                <span class="font-mono text-muted">1,047 scans</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

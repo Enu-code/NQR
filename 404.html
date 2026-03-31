@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>404 Page Not Found — NQR</title>
+<link rel="stylesheet" href="styles.css"/>
+<style>
+  .error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: var(--sp-xl);
+    background: var(--c-navy-deep);
+    color: white;
+  }
+  .error-code {
+    font-size: 8rem;
+    font-weight: 800;
+    line-height: 1;
+    background: var(--g-red);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: var(--sp-md);
+  }
+</style>
+</head>
+<body class="error-page">
+  <div class="error-code">404</div>
+  <h1 class="t-h2">Lost in the grid?</h1>
+  <p class="t-large text-muted mt-md" style="max-width: 400px; margin-bottom: var(--sp-xl)">
+    The page you are looking for doesn't exist or has been moved to a new encrypted location.
+  </p>
+  <a href="index.html" class="btn btn--primary btn--lg">Return Home</a>
+</body>
+</html>

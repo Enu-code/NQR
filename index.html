@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NQR — Smart QR Sharing. Powered by Neverno</title>
+<meta name="description" content="Turn links, contacts, files, and text into instant, secure, beautifully shareable QR experiences. NQR by Neverno."/>
+<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="home.css"/>
+<script src="config.js"></script>
+<script src="backend.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     NAVIGATION
+════════════════════════════════════════════ -->
+<nav class="nav" id="mainNav">
+  <div class="nav__inner">
+    <a href="index.html" class="nav__logo">
+      <div class="nav__logo-mark">
+        <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+      </div>
+      <div>
+        <div class="nav__logo-text">NQR</div>
+        <div class="nav__logo-powered">Powered by Neverno</div>
+      </div>
+    </a>
+    <ul class="nav__links">
+      <li><a href="app-generator.html" class="nav__link">Generator</a></li>
+      <li><a href="features.html" class="nav__link">Features</a></li>
+      <li><a href="usecases.html" class="nav__link">Solutions</a></li>
+      <li><a href="security.html" class="nav__link">Security</a></li>
+    </ul>
+    <div class="nav__cta hide-mobile">
+      <a href="user-login.html" class="btn btn--ghost btn--sm">Sign In</a>
+      <a href="user-login.html" class="btn btn--primary btn--sm">Get Started</a>
+    </div>
+    <div class="nav__hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobileNav">
+  <span class="mobile-nav__close" id="mobileClose">✕</span>
+  <a href="app-generator.html" class="mobile-nav__link">Generator</a>
+  <a href="features.html" class="mobile-nav__link">Features</a>
+  <a href="usecases.html" class="mobile-nav__link">Solutions</a>
+  <a href="security.html" class="mobile-nav__link">Security</a>
+  <a href="app-generator.html" class="btn btn--primary btn--lg" style="margin-top:1rem">Get Started Free</a>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     HERO SECTION
+════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero__bg">
+    <div class="hero__glow hero__glow--1"></div>
+    <div class="hero__glow hero__glow--2"></div>
+    <div class="hero__grid-pattern"></div>
+  </div>
+  <div class="container">
+    <div class="hero__inner">
+      <div class="hero__content">
+        <div class="hero__badge anim-fade-up">
+          <span class="section-badge">New — Dynamic QR Now Live</span>
+        </div>
+        <h1 class="t-hero hero__headline anim-fade-up anim-fade-up--d1">
+          Share anything<br/>with a <span class="gradient-text">scan.</span>
+        </h1>
+        <p class="t-large text-muted hero__sub anim-fade-up anim-fade-up--d2">
+          NQR transforms links, files, contacts, and text into instant, secure, branded QR experiences — built for modern teams and businesses.
+        </p>
+        <div class="hero__actions anim-fade-up anim-fade-up--d3">
+          <a href="user-login.html" class="btn btn--primary btn--lg">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m0 0h3m-3 0v3"/></svg>
+            Generate QR Free
+          </a>
+          <a href="user-login.html?tab=file" class="btn btn--secondary btn--lg">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+            Upload File
+          </a>
+        </div>
+        <div class="hero__stats anim-fade-up anim-fade-up--d4">
+          <div class="hero__stat"><span class="hero__stat-num">2M+</span><span class="hero__stat-label">QRs Created</span></div>
+          <div class="hero__stat-divider"></div>
+          <div class="hero__stat"><span class="hero__stat-num">98K+</span><span class="hero__stat-label">Files Shared</span></div>
+          <div class="hero__stat-divider"></div>
+          <div class="hero__stat"><span class="hero__stat-num">150+</span><span class="hero__stat-label">Countries</span></div>
+        </div>
+      </div>
+
+      <div class="hero__visual anim-scale-in">
+        <div class="hero__phone-frame anim-float">
+          <div class="hero__phone">
+            <div class="hero__phone-notch"></div>
+            <div class="hero__phone-screen">
+              <div class="hero__phone-top-bar">
+                <div class="hero__scan-indicator">
+                  <div class="hero__scan-dot"></div>
+                  <span>Scanning...</span>
+                </div>
+              </div>
+              <div class="hero__qr-area">
+                <div class="hero__qr-mock">
+                  <canvas id="heroQR" width="140" height="140"></canvas>
+                  <div class="hero__scan-line"></div>
+                  <div class="hero__qr-corner hero__qr-corner--tl"></div>
+                  <div class="hero__qr-corner hero__qr-corner--tr"></div>
+                  <div class="hero__qr-corner hero__qr-corner--bl"></div>
+                  <div class="hero__qr-corner hero__qr-corner--br"></div>
+                </div>
+              </div>
+              <div class="hero__phone-result">
+                <div class="hero__result-icon">🔗</div>
+                <div>
+                  <div class="hero__result-label">Opening link</div>
+                  <div class="hero__result-url">nqr.io/demo</div>
+                </div>
+                <div class="hero__result-arrow">→</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Cards -->
+        <div class="hero__float-card hero__float-card--1 anim-float" style="animation-delay:1s">
+          <div class="icon-wrap icon-wrap--red icon-wrap--sm">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div>
+            <div style="font-size:.78rem;font-weight:700;font-family:var(--font-display)">File Shared</div>
+            <div style="font-size:.68rem;color:var(--c-text-2)">Deck.pdf · 2.4 MB</div>
+          </div>
+          <span class="tag tag--green">✓ Done</span>
+        </div>
+        <div class="hero__float-card hero__float-card--2 anim-float" style="animation-delay:2s">
+          <div class="icon-wrap icon-wrap--blue icon-wrap--sm">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--c-blue-light)" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <div>
+            <div style="font-size:.78rem;font-weight:700;font-family:var(--font-display)">148 Scans Today</div>
+            <div style="font-size:.68rem;color:var(--c-text-2)">↑ 24% vs yesterday</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom gradient fade -->
+  <div class="hero__fade"></div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     QUICK ACTION GRID
+════════════════════════════════════════════ -->
+<section class="section section--sm" id="types">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">QR Types</div>
+      <h2 class="t-h1 gradient-text-blue">Everything you need to share</h2>
+      <p class="t-large text-muted mt-md" style="max-width:540px;margin-left:auto;margin-right:auto">
+        Four core types, endlessly customizable. Built for speed, built for enterprise.
+      </p>
+    </div>
+    <div class="qtype-grid">
+      <a href="app-generator.html?tab=link" class="qtype-card qtype-card--featured card">
+        <div class="card-inner">
+          <div class="qtype-icon">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          </div>
+          <div class="qtype-label">Website Link</div>
+          <div class="qtype-desc">Share any URL, landing page, or online resource</div>
+          <div class="qtype-arrow">→</div>
+        </div>
+      </a>
+      <a href="app-generator.html?tab=contact" class="qtype-card card">
+        <div class="card-inner">
+          <div class="qtype-icon">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="qtype-label">Contact / vCard</div>
+          <div class="qtype-desc">Digital business card, saved instantly on scan</div>
+          <div class="qtype-arrow">→</div>
+        </div>
+      </a>
+      <a href="app-generator.html?tab=file" class="qtype-card card">
+        <div class="card-inner">
+          <div class="qtype-icon">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="qtype-label">File Transfer</div>
+          <div class="qtype-desc">PDF, images, docs, ZIP — shared in one scan</div>
+          <div class="qtype-arrow">→</div>
+        </div>
+      </a>
+      <a href="app-generator.html?tab=text" class="qtype-card card">
+        <div class="card-inner">
+          <div class="qtype-icon">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          </div>
+          <div class="qtype-label">Text Message</div>
+          <div class="qtype-desc">Any text, note, or instruction revealed on scan</div>
+          <div class="qtype-arrow">→</div>
+        </div>
+      </a>
+      <!-- Future types (dimmed) -->
+      <a href="app-generator.html?tab=payment" class="qtype-card card">
+        <div class="card-inner">
+          <div class="qtype-icon"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+          <div class="qtype-label">Payment QR</div>
+          <div class="qtype-desc">Fast UPI, Crypto, or invoice links</div>
+          <div class="qtype-arrow">→</div>
+        </div>
+      </a>
+      <div class="qtype-card qtype-card--soon card">
+        <div class="card-inner">
+          <div class="qtype-icon"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div class="qtype-label">Event Check-in</div>
+          <div class="tag tag--gray" style="margin-top:.5rem">Coming Soon</div>
+        </div>
+      </div>
+      <div class="qtype-card qtype-card--soon card">
+        <div class="card-inner">
+          <div class="qtype-icon"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
+          <div class="qtype-label">Menu / Brochure</div>
+          <div class="tag tag--gray" style="margin-top:.5rem">Coming Soon</div>
+        </div>
+      </div>
+      <div class="qtype-card qtype-card--soon card">
+        <div class="card-inner">
+          <div class="qtype-icon"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 6l10.5 7.5L22 6M1 18V6a2 2 0 012-2h18a2 2 0 012 2v12a2 2 0 01-2 2H3a2 2 0 01-2-2z"/></svg></div>
+          <div class="qtype-label">Lead Capture</div>
+          <div class="tag tag--gray" style="margin-top:.5rem">Coming Soon</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════════ -->
+<section class="section hiw" id="how">
+  <div class="hiw__bg-line"></div>
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">How It Works</div>
+      <h2 class="t-h1 gradient-text-blue">From idea to QR in seconds</h2>
+    </div>
+    <div class="hiw__steps">
+      <div class="hiw__step">
+        <div class="hiw__step-num">01</div>
+        <div class="hiw__step-icon icon-wrap icon-wrap--red icon-wrap--lg">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <h3 class="t-h4 mt-md">Choose Your Type</h3>
+        <p class="t-body text-muted mt-sm">Link, Contact, File, or Text — pick a QR type that fits your use case.</p>
+      </div>
+      <div class="hiw__connector"></div>
+      <div class="hiw__step">
+        <div class="hiw__step-num">02</div>
+        <div class="hiw__step-icon icon-wrap icon-wrap--blue icon-wrap--lg">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="var(--c-blue-light)" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <h3 class="t-h4 mt-md">Add Your Content</h3>
+        <p class="t-body text-muted mt-sm">Enter a URL, fill contact details, upload a file, or type any text.</p>
+      </div>
+      <div class="hiw__connector"></div>
+      <div class="hiw__step">
+        <div class="hiw__step-num">03</div>
+        <div class="hiw__step-icon icon-wrap icon-wrap--red icon-wrap--lg">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93L17.66 6.34A8 8 0 1 0 6.34 17.66l-1.41 1.41C2.12 16.29 1 14.26 1 12 1 6.48 6.48 1 12 1s11 5.48 11.07 11c.07 2.26-1.05 4.29-3 5.07"/></svg>
+        </div>
+        <h3 class="t-h4 mt-md">Customize & Style</h3>
+        <p class="t-body text-muted mt-sm">Set colors, add your logo, choose frame and dot styles for brand-perfect QRs.</p>
+      </div>
+      <div class="hiw__connector"></div>
+      <div class="hiw__step">
+        <div class="hiw__step-num">04</div>
+        <div class="hiw__step-icon icon-wrap icon-wrap--blue icon-wrap--lg">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="var(--c-blue-light)" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </div>
+        <h3 class="t-h4 mt-md">Share Instantly</h3>
+        <p class="t-body text-muted mt-sm">Download PNG/SVG/PDF, copy a short link, or share via email or WhatsApp.</p>
+      </div>
+      <div class="hiw__connector"></div>
+      <div class="hiw__step">
+        <div class="hiw__step-num">05</div>
+        <div class="hiw__step-icon icon-wrap icon-wrap--red icon-wrap--lg">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <h3 class="t-h4 mt-md">Track Engagement</h3>
+        <p class="t-body text-muted mt-sm">See scan counts, locations, and device breakdowns in real-time analytics.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     FEATURE SHOWCASE
+════════════════════════════════════════════ -->
+<section class="section features-section" id="features">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">Platform Features</div>
+      <h2 class="t-h1 gradient-text-blue">More than a QR generator</h2>
+      <p class="t-large text-muted mt-md" style="max-width:560px;margin:var(--sp-md) auto 0">
+        A complete QR-powered sharing, transfer, and engagement workspace — built for real business workflows.
+      </p>
+    </div>
+    <div class="features-bento">
+      <!-- Large feature card -->
+      <div class="feat-card feat-card--large card card--glow">
+        <div class="card-inner--lg">
+          <span class="tag tag--red mb-md">Instant</span>
+          <h3 class="t-h2">Real-time QR Generation</h3>
+          <p class="t-body text-muted mt-md" style="max-width:380px">As you type, your QR updates live. No refresh needed. No wait. Just pure speed — the way modern tools should work.</p>
+          <div class="feat-qr-demo mt-xl">
+            <div class="feat-qr-input">
+              <div style="font-size:.75rem;color:var(--c-text-3);margin-bottom:.5rem;font-family:var(--font-mono)">nqr.io/go/ ···</div>
+              <div class="progress-bar" style="margin-top:.5rem"><div class="progress-fill" style="width:78%"></div></div>
+            </div>
+            <div class="feat-qr-box"><canvas id="featQR" width="80" height="80"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stack -->
+      <div class="feat-card card">
+        <div class="card-inner">
+          <div class="icon-wrap icon-wrap--blue mb-md"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="var(--c-blue-light)" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <h3 class="t-h4">Secure File Transfer</h3>
+          <p class="t-body text-muted mt-sm">Upload any file up to 5 GB. QR links to a polished secure download page. Expiry + password options built in.</p>
+        </div>
+      </div>
+
+      <div class="feat-card card">
+        <div class="card-inner">
+          <div class="icon-wrap icon-wrap--red mb-md"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <h3 class="t-h4">Privacy & Expiry</h3>
+          <p class="t-body text-muted mt-sm">Set an expiry time or scan limit. Password-protect sensitive QRs. Full control over who can access and when.</p>
+        </div>
+      </div>
+
+      <div class="feat-card card">
+        <div class="card-inner">
+          <div class="icon-wrap icon-wrap--blue mb-md"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="var(--c-blue-light)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+          <h3 class="t-h4">Smart Analytics</h3>
+          <p class="t-body text-muted mt-sm">Track scans by day, device, location, and source. Know exactly how your QRs are performing.</p>
+        </div>
+      </div>
+
+      <div class="feat-card card">
+        <div class="card-inner">
+          <div class="icon-wrap icon-wrap--red mb-md"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+          <h3 class="t-h4">Dynamic QR</h3>
+          <p class="t-body text-muted mt-sm">Change the destination of a QR after printing it. Update campaigns without reprinting a single code.</p>
+        </div>
+      </div>
+
+      <!-- Wide card -->
+      <div class="feat-card feat-card--wide card card--glow">
+        <div class="card-inner">
+          <div class="feat-wide-inner">
+            <div>
+              <span class="tag tag--blue mb-md">Brand-Ready</span>
+              <h3 class="t-h3">QR Customization Studio</h3>
+              <p class="t-body text-muted mt-sm" style="max-width:320px">Foreground/background colors, custom logo embed, eye and dot patterns, frame styles and CTA text — make every QR unmistakably yours.</p>
+              <a href="app-generator.html" class="btn btn--primary btn--sm mt-lg">Try the Studio</a>
+            </div>
+            <div class="feat-custom-preview">
+              <div class="feat-swatch" style="background:#D90429"></div>
+              <div class="feat-swatch" style="background:#20306F"></div>
+              <div class="feat-swatch" style="background:#2A3E8F"></div>
+              <div class="feat-swatch feat-swatch--active" style="background:#fff;border:2px solid var(--c-red)"></div>
+              <div class="feat-swatch" style="background:#1a1a2e"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     USE CASES
+════════════════════════════════════════════ -->
+<section class="section use-cases-section" id="usecases">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">Solutions</div>
+      <h2 class="t-h1 gradient-text-blue">Built for every team</h2>
+      <p class="t-large text-muted mt-md" style="max-width:500px;margin:var(--sp-md) auto 0">Real QR workflows for real industries — from startups to enterprise operations.</p>
+    </div>
+    <div class="uc-grid">
+      <div class="uc-card card">
+        <div class="card-inner">
+          <div class="uc-emoji">🏢</div>
+          <h3 class="t-h4 mt-md">Corporate Offices</h3>
+          <p class="t-body text-muted mt-sm">Share documents, Wi-Fi, directories, and event info across buildings — no printing chaos.</p>
+        </div>
+      </div>
+      <div class="uc-card card">
+        <div class="card-inner">
+          <div class="uc-emoji">🎪</div>
+          <h3 class="t-h4 mt-md">Events & Expos</h3>
+          <p class="t-body text-muted mt-sm">Check-in QRs, speaker bios, brochures, and networking cards — all scannable in seconds.</p>
+        </div>
+      </div>
+      <div class="uc-card card">
+        <div class="card-inner">
+          <div class="uc-emoji">🍽️</div>
+          <h3 class="t-h4 mt-md">Restaurants & Cafés</h3>
+          <p class="t-body text-muted mt-sm">Instant digital menus, table QRs, contact forms, and loyalty links without any app.</p>
+        </div>
+      </div>
+      <div class="uc-card card">
+        <div class="card-inner">
+          <div class="uc-emoji">📊</div>
+          <h3 class="t-h4 mt-md">Sales Teams</h3>
+          <p class="t-body text-muted mt-sm">Digital business cards, proposal PDFs, and product demos shareable in a simple scan.</p>
+        </div>
+      </div>
+      <div class="uc-card card">
+        <div class="card-inner">
+          <div class="uc-emoji">🎓</div>
+          <h3 class="t-h4 mt-md">Campuses</h3>
+          <p class="t-body text-muted mt-sm">Resource sharing, attendance QRs, student forms, and campus-wide announcements.</p>
+        </div>
+      </div>
+      <div class="uc-card card">
+        <div class="card-inner">
+          <div class="uc-emoji">🚀</div>
+          <h3 class="t-h4 mt-md">Marketing Teams</h3>
+          <p class="t-body text-muted mt-sm">Campaign QRs with real-time tracking, A/B destination switching, and geo analytics.</p>
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-xl">
+      <a href="usecases.html" class="btn btn--secondary">View all use cases →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     TRUST / SECURITY
+════════════════════════════════════════════ -->
+<section class="section trust-section">
+  <div class="container container--narrow">
+    <div class="trust-card card">
+      <div class="card-inner--lg">
+        <div class="section-badge">Security First</div>
+        <h2 class="t-h2 mt-md">Trusted, secure, private by design</h2>
+        <p class="t-body text-muted mt-md">Every QR and file transfer on NQR is built with security at its core — not bolted on after.</p>
+        <div class="trust-grid mt-xl">
+          <div class="trust-item">
+            <div class="icon-wrap icon-wrap--red icon-wrap--sm"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div><div class="t-h4" style="font-size:.9rem">Encrypted transfers</div><div class="t-small text-muted">TLS 1.3 on all data in transit</div></div>
+          </div>
+          <div class="trust-item">
+            <div class="icon-wrap icon-wrap--red icon-wrap--sm"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+            <div><div class="t-h4" style="font-size:.9rem">Password protection</div><div class="t-small text-muted">Lock any QR or file with a PIN</div></div>
+          </div>
+          <div class="trust-item">
+            <div class="icon-wrap icon-wrap--red icon-wrap--sm"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div><div class="t-h4" style="font-size:.9rem">Auto-expiry</div><div class="t-small text-muted">Set time or scan limits per QR</div></div>
+          </div>
+          <div class="trust-item">
+            <div class="icon-wrap icon-wrap--red icon-wrap--sm"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#ff6b7a" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
+            <div><div class="t-h4" style="font-size:.9rem">Delete on demand</div><div class="t-small text-muted">Deactivate or wipe any QR instantly</div></div>
+          </div>
+        </div>
+        <a href="security.html" class="btn btn--ghost btn--sm mt-xl">Read our security page →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ═══════════════════════════════════════════
+     FINAL CTA
+════════════════════════════════════════════ -->
+<section class="section cta-section">
+  <div class="container container--narrow">
+    <div class="cta-card card">
+      <div class="cta-glow"></div>
+      <div class="card-inner--lg text-center">
+        <div class="section-badge" style="margin:0 auto var(--sp-lg)">Get Started</div>
+        <h2 class="t-h1 gradient-text">One scan. Fast access.<br/>Better engagement.</h2>
+        <p class="t-large text-muted mt-lg" style="max-width:480px;margin-left:auto;margin-right:auto">
+          Join thousands of teams using NQR to share smarter. Create your first QR free — no account required.
+        </p>
+        <div class="cta-actions mt-xl">
+          <a href="user-login.html" class="btn btn--primary btn--lg anim-glow">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m0 0h3m-3 0v3"/></svg>
+            Generate Your First QR
+          </a>
+          <a href="user-login.html" class="btn btn--secondary btn--lg">Create Free Account →</a>
+        </div>
+        <p class="t-small text-muted mt-lg">No credit card needed · Free forever plan available</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="nav__logo">
+          <div class="nav__logo-mark">
+            <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+          </div>
+          <div>
+            <div class="nav__logo-text">NQR</div>
+            <div class="nav__logo-powered">Powered by Neverno</div>
+          </div>
+        </a>
+        <p class="mt-md">Smart QR sharing for modern businesses and teams. Secure, branded, and built for scale.</p>
+        <div class="footer__socials mt-md">
+          <a href="#" class="btn btn--ghost btn--icon" aria-label="Twitter">𝕏</a>
+          <a href="#" class="btn btn--ghost btn--icon" aria-label="LinkedIn">in</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Product</div>
+        <ul class="footer__links">
+          <li><a href="app-generator.html" class="footer__link">QR Generator</a></li>
+          <li><a href="app-generator.html?tab=file" class="footer__link">File Transfer</a></li>
+          <li><a href="app-generator.html?tab=contact" class="footer__link">Contact QR</a></li>
+          <li><a href="admin-portal.html" class="footer__link">Admin Portal</a></li>
+          <li><a href="analytics.html" class="footer__link">Public Analytics</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Solutions</div>
+        <ul class="footer__links">
+          <li><a href="usecases.html#corporate" class="footer__link">Corporate</a></li>
+          <li><a href="usecases.html#events" class="footer__link">Events</a></li>
+          <li><a href="usecases.html#restaurants" class="footer__link">Restaurants</a></li>
+          <li><a href="usecases.html#sales" class="footer__link">Sales Teams</a></li>
+          <li><a href="usecases.html#marketing" class="footer__link">Marketing</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Company</div>
+        <ul class="footer__links">
+          <li><a href="security.html" class="footer__link">Security</a></li>
+          <li><a href="faq.html" class="footer__link">FAQ</a></li>
+          <li><a href="contact.html" class="footer__link">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Account</div>
+        <ul class="footer__links">
+          <li><a href="user-login.html" class="footer__link">Sign In</a></li>
+          <li><a href="user-login.html?signup" class="footer__link">Sign Up</a></li>
+          <li><a href="admin-portal.html" class="footer__link">Admin Login</a></li>
+          <li><a href="app-generator.html" class="footer__link">Start Generating</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 NQR. All rights reserved.</span>
+      <div class="footer__powered">
+        <div class="footer__powered-dot"></div>
+        <span>Powered by Neverno</span>
+      </div>
+      <div style="display:flex;gap:1rem">
+        <a href="#" class="footer__link">Privacy</a>
+        <a href="#" class="footer__link">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>
