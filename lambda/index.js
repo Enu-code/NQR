@@ -1,12 +1,40 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand, QueryCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const https = require('https');
+const crypto = require('crypto');
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
+const sesClient = new SESClient({});
 
 const USERS_TABLE = process.env.USERS_TABLE || 'NqrUsers';
 const QRS_TABLE = process.env.QRS_TABLE || 'NqrQrs';
+const OTPS_TABLE = process.env.OTPS_TABLE || 'NqrOtps';
+const SES_SENDER = process.env.SES_SENDER || 'support@neverno.in';
+
+// Helper for hashing passwords
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+// Helper to generate OTP
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+}
+
+// Helper to send SES Email
+async function sendSESEmail(toAddress, subject, bodyHtml) {
+  const params = {
+    Destination: { ToAddresses: [toAddress] },
+    Message: {
+      Body: { Html: { Charset: "UTF-8", Data: bodyHtml } },
+      Subject: { Charset: "UTF-8", Data: subject }
+    },
+    Source: SES_SENDER
+  };
+  return sesClient.send(new SendEmailCommand(params));
+}
 
 exports.handler = async (event) => {
   console.log("Event:", JSON.stringify(event));
@@ -14,55 +42,125 @@ exports.handler = async (event) => {
   const resource = event.resource;
 
   try {
-16:     // ── AUTH Endpoints ──
-17:     if (path === "/signup" && httpMethod === "POST") {
-18:       const data = JSON.parse(body);
-19:       
-20:       // Turnstile Verification
-21:       const turnstile = await verifyTurnstile(data.turnstileToken);
-22:       if (!turnstile.success) {
-23:         return response(403, { error: "Security check failed. Please refresh and try again." });
-24:       }
-25: 
-26:       if (!data.email || !data.email.toLowerCase().endsWith('@neverno.in')) {
-27:         return response(400, { error: "Registration restricted. Please use an @neverno.in email." });
-28:       }
-29: 
-30:       // Basic Sanitation
-31:       const sanitized = {
-32:         email: data.email.toLowerCase().trim(),
-33:         firstName: (data.firstName || "").substring(0, 50).replace(/[<>]/g, ""),
-34:         lastName: (data.lastName || "").substring(0, 50).replace(/[<>]/g, "")
-35:       };
-36: 
-37:       await docClient.send(new PutCommand({
-38:         TableName: USERS_TABLE,
-39:         Item: { ...sanitized, id: Date.now().toString(), createdAt: new Date().toISOString() }
-40:       }));
-41:       return response(200, { success: true });
-42:     }
-43: 
-44:     if (path === "/login" && httpMethod === "POST") {
-45:       const data = JSON.parse(body);
-46:       
-47:       // Turnstile Verification
-48:       const turnstile = await verifyTurnstile(data.turnstileToken || data.body?.turnstileToken); // Handle both formats
-49:       if (!turnstile.success) {
-50:         return response(403, { error: "Security check failed." });
-51:       }
-52: 
-53:       if (!data.email || !data.email.toLowerCase().endsWith('@neverno.in')) {
-54:         return response(400, { error: "Access restricted. Please use an @neverno.in email." });
-55:       }
+    // ── AUTH & COMMUNICATION Endpoints ──
+    if (path === "/auth/request-otp" && httpMethod === "POST") {
+      const data = JSON.parse(body);
+      const email = data.email.toLowerCase().trim();
+      
+      if (!email.endsWith('@neverno.in') && data.type === 'OTP') {
+        return response(400, { error: "Access restricted to @neverno.in domains." });
+      }
 
-      // Mock login for now, as requested. In prod, check DynamoDB.
-      return response(200, { success: true, user: { name: "Jane Doe" } });
+      if (data.type === 'SUPPORT') {
+        // Send a support email
+        await sendSESEmail(
+          SES_SENDER, // Send to ourselves or a support inbox
+          \`New Support Request from \${email}\`,
+          \`<p><b>From:</b> \${email}</p><p><b>Message:</b><br/>\${data.message || 'No message provided'}</p>\`
+        );
+        return response(200, { success: true });
+      }
+
+      if (data.type === 'OTP') {
+        if (data.action === 'reset') {
+          // Check if user exists
+          const userResult = await docClient.send(new GetCommand({ TableName: USERS_TABLE, Key: { email } }));
+          if (!userResult.Item) {
+            return response(404, { error: "User not found." });
+          }
+        }
+
+        const otp = generateOTP();
+        const expiration = Math.floor(Date.now() / 1000) + 600; // 10 minutes
+
+        await docClient.send(new PutCommand({
+          TableName: OTPS_TABLE,
+          Item: { email, otp, expiration }
+        }));
+
+        const subject = data.action === 'reset' ? "NQR Password Reset Code" : "NQR Account Verification Code";
+        const emailBody = \`<p>Your verification code is: <strong>\${otp}</strong></p><p>This code will expire in 10 minutes.</p>\`;
+        
+        await sendSESEmail(email, subject, emailBody);
+        return response(200, { success: true });
+      }
+    }
+
+    if (path === "/auth/signup" && httpMethod === "POST") {
+      const data = JSON.parse(body);
+      const email = data.email.toLowerCase().trim();
+
+      // Verify OTP
+      const otpResult = await docClient.send(new GetCommand({ TableName: OTPS_TABLE, Key: { email } }));
+      if (!otpResult.Item || otpResult.Item.otp !== data.otp || otpResult.Item.expiration < Math.floor(Date.now() / 1000)) {
+        return response(400, { error: "Invalid or expired verification code." });
+      }
+
+      // Check if user already exists
+      const existingUser = await docClient.send(new GetCommand({ TableName: USERS_TABLE, Key: { email } }));
+      if (existingUser.Item) {
+        return response(400, { error: "User already exists." });
+      }
+
+      const sanitized = {
+        email: email,
+        firstName: (data.firstName || "").substring(0, 50).replace(/[<>]/g, ""),
+        lastName: (data.lastName || "").substring(0, 50).replace(/[<>]/g, ""),
+        password: hashPassword(data.password)
+      };
+
+      await docClient.send(new PutCommand({
+        TableName: USERS_TABLE,
+        Item: { ...sanitized, id: Date.now().toString(), createdAt: new Date().toISOString() }
+      }));
+      
+      // Cleanup OTP
+      await docClient.send(new DeleteCommand({ TableName: OTPS_TABLE, Key: { email } }));
+
+      return response(200, { success: true });
+    }
+
+    if (path === "/auth/login" && httpMethod === "POST") {
+      const data = JSON.parse(body);
+      const email = data.email.toLowerCase().trim();
+
+      const userResult = await docClient.send(new GetCommand({ TableName: USERS_TABLE, Key: { email } }));
+      
+      if (!userResult.Item || userResult.Item.password !== hashPassword(data.password)) {
+        return response(403, { error: "The login email ID or password you entered is incorrect." });
+      }
+
+      return response(200, { success: true, user: { name: \`\${userResult.Item.firstName} \${userResult.Item.lastName}\`.trim() } });
+    }
+
+    if (path === "/auth/reset-password" && httpMethod === "POST") {
+      const data = JSON.parse(body);
+      const email = data.email.toLowerCase().trim();
+
+      // Verify OTP
+      const otpResult = await docClient.send(new GetCommand({ TableName: OTPS_TABLE, Key: { email } }));
+      if (!otpResult.Item || otpResult.Item.otp !== data.otp || otpResult.Item.expiration < Math.floor(Date.now() / 1000)) {
+        return response(400, { error: "Invalid or expired verification code." });
+      }
+
+      // Update password
+      await docClient.send(new UpdateCommand({
+        TableName: USERS_TABLE,
+        Key: { email },
+        UpdateExpression: "set password = :p",
+        ExpressionAttributeValues: { ":p": hashPassword(data.newPassword) }
+      }));
+      
+      // Cleanup OTP
+      await docClient.send(new DeleteCommand({ TableName: OTPS_TABLE, Key: { email } }));
+
+      return response(200, { success: true });
     }
 
     // ── QR MANAGEMENT ──
     if (path === "/qrs" && httpMethod === "POST") {
       const data = JSON.parse(body);
-      const qrId = `nqr-${Math.random().toString(36).substr(2, 9)}`;
+      const qrId = \`nqr-\${Math.random().toString(36).substr(2, 9)}\`;
       const item = {
         id: qrId,
         ...data,
@@ -135,48 +233,48 @@ exports.handler = async (event) => {
     console.error(err);
     return response(500, { error: err.message });
   }
-119: };
-120: 
-121: async function verifyTurnstile(token) {
-122:   if (!token) return { success: false };
-123:   const secret = process.env.TURNSTILE_SECRET || '1x0000000000000000000000000000000AA';
-124:   const data = `secret=${secret}&response=${token}`;
-125: 
-126:   return new Promise((resolve, reject) => {
-127:     const req = https.request({
-128:       hostname: 'challenges.cloudflare.com',
-129:       path: '/turnstile/v0/siteverify',
-130:       method: 'POST',
-131:       headers: {
-132:         'Content-Type': 'application/x-www-form-urlencoded',
-133:         'Content-Length': data.length
-134:       }
-135:     }, (res) => {
-136:       let body = '';
-137:       res.on('data', (chunk) => body += chunk);
-138:       res.on('end', () => {
-139:         try { resolve(JSON.parse(body)); }
-140:         catch (e) { resolve({ success: false }); }
-141:       });
-142:     });
-143:     req.on('error', () => resolve({ success: false }));
-144:     req.write(data);
-145:     req.end();
-146:   });
-147: }
-148: 
-149: function response(statusCode, body) {
-150:   const origin = process.env.ALLOWED_ORIGIN || "*"; // Set this to your production domain
-151:   return {
-152:     statusCode,
-153:     headers: {
-154:       "Content-Type": "application/json",
-155:       "Access-Control-Allow-Origin": origin,
-156:       "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
-157:       "X-Content-Type-Options": "nosniff",
-158:       "X-Frame-Options": "DENY",
-159:       "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
-160:     },
-161:     body: JSON.stringify(body)
-162:   };
-163: }
+};
+
+async function verifyTurnstile(token) {
+  if (!token) return { success: false };
+  const secret = process.env.TURNSTILE_SECRET || '1x0000000000000000000000000000000AA';
+  const data = \`secret=\${secret}&response=\${token}\`;
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'challenges.cloudflare.com',
+      path: '/turnstile/v0/siteverify',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': data.length
+      }
+    }, (res) => {
+      let body = '';
+      res.on('data', (chunk) => body += chunk);
+      res.on('end', () => {
+        try { resolve(JSON.parse(body)); }
+        catch (e) { resolve({ success: false }); }
+      });
+    });
+    req.on('error', () => resolve({ success: false }));
+    req.write(data);
+    req.end();
+  });
+}
+
+function response(statusCode, body) {
+  const origin = process.env.ALLOWED_ORIGIN || "*"; 
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
+    },
+    body: JSON.stringify(body)
+  };
+}

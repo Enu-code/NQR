@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Terms of Service — NQR</title>
+<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="home.css"/>
+<style>
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-block {
+    opacity: 0;
+    animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .animate-d1 { animation-delay: 0.1s; }
+  .animate-d2 { animation-delay: 0.2s; }
+  .animate-d3 { animation-delay: 0.3s; }
+  
+  .glass-card {
+    background: rgba(26, 26, 26, 0.6);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    transition: all 0.4s ease;
+  }
+  
+  .policy-item {
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+  .policy-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.05);
+    transform: translateX(8px);
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav">
+  <div class="nav__inner">
+    <a href="index.html" class="nav__logo">
+      <div class="nav__logo-mark">
+        <img src="assets/logo.png" alt="NQR Logo" style="width:100%;height:100%;border-radius:var(--r-sm);object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+      </div>
+      <div>
+        <div class="nav__logo-text">NQR</div>
+      </div>
+    </a>
+    <ul class="nav__links">
+      <li><a href="app-generator.html" class="nav__link">Generator</a></li>
+      <li><a href="features.html" class="nav__link">Features</a></li>
+      <li><a href="usecases.html" class="nav__link">Solutions</a></li>
+    </ul>
+    <div class="nav__cta">
+      <a href="user-login.html" class="btn btn--ghost btn--sm">Sign In</a>
+    </div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:140px">
+  <div class="container container--narrow text-center">
+    <div class="section-badge anim-fade-up">Legal</div>
+    <h1 class="t-hero mt-md anim-fade-up anim-fade-up--d1">Terms of <span class="gradient-text">Service</span></h1>
+    <p class="t-large text-muted mt-lg anim-fade-up anim-fade-up--d2">Last updated: April 2026. Please read these terms carefully before using NQR.</p>
+  </div>
+</section>
+
+<section class="section pt-0">
+  <div class="container container--narrow">
+    <div class="glass-card p-xl animate-block">
+      <div class="policy-item pb-md mb-xs animate-block animate-d1">
+        <h3 class="t-h3 mb-sm">1. Acceptance of Terms</h3>
+        <p class="t-body text-muted">By accessing and using NQR ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.</p>
+      </div>
+      <div class="policy-item pb-md mb-xs animate-block animate-d2">
+        <h3 class="t-h3 mb-sm">2. Use License</h3>
+        <p class="t-body text-muted">Permission is granted to temporarily use the materials (information or software) on NQR for personal, non-commercial or commercial use, subject to the plan constraints.</p>
+      </div>
+      <div class="policy-item pb-xs animate-block animate-d3">
+        <h3 class="t-h3 mb-sm">3. Disclaimer</h3>
+        <p class="t-body text-muted">The materials on NQR are provided on an 'as is' basis. NQR makes no warranties, expressed or implied, and hereby disclaims all other warranties including, without limitation, implied warranties or conditions of merchantability.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer mt-xl" style="border-top:1px solid var(--c-border)">
+  <div class="container text-center">
+    <div class="nav__logo-text mb-sm">NQR</div>
+    <p class="t-small text-muted">© 2026 NQR. All rights reserved by NEVERNO.</p>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+
+<a href="javascript:history.back()" class="floating-back-btn">
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+  <span>Back</span>
+</a>
+
+</body>
+</html>

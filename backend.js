@@ -27,8 +27,16 @@ class NQRBackend {
   }
 
   // ── AUTH ──
-  async signup(userData) {
-    const result = await this.request('/signup', 'POST', userData);
+  async requestOtp(email, action) {
+    return await this.request('/auth/request-otp', 'POST', { email, action, type: 'OTP' });
+  }
+
+  async resetPassword(email, otp, newPassword) {
+    return await this.request('/auth/reset-password', 'POST', { email, otp, newPassword });
+  }
+
+  async signup(userData, otp) {
+    const result = await this.request('/auth/signup', 'POST', { ...userData, otp });
     sessionStorage.setItem('userLoggedIn', 'true');
     sessionStorage.setItem('userEmail', userData.email);
     sessionStorage.setItem('userName', `${userData.firstName} ${userData.lastName}`);
@@ -36,11 +44,10 @@ class NQRBackend {
   }
 
   async login(email, password) {
-    // Current requirement: Keep admin/user login simple for now
-    const result = await this.request('/login', 'POST', { email, password });
+    const result = await this.request('/auth/login', 'POST', { email, password });
     sessionStorage.setItem('userLoggedIn', 'true');
     sessionStorage.setItem('userEmail', email);
-    sessionStorage.setItem('userName', 'User Account');
+    sessionStorage.setItem('userName', result.user?.name || 'User Account');
     return result;
   }
 
@@ -84,8 +91,27 @@ class NQRBackend {
   // ── MOCK FALLBACK (If needed) ──
   mockRequest(path, method, body) {
     console.warn("Using Local Mock Backup for:", path);
-    // Legacy localStorage logic could go here
-    return { success: true, mock: true };
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (path === '/auth/login') {
+          if (body.email === 'editor@neverno.in' && body.password !== 'password123') {
+            return reject(new Error('The login email ID or password you entered is incorrect.'));
+          }
+          resolve({ success: true, mock: true, user: { name: 'Local Tester' } });
+        } else if (path === '/auth/request-otp') {
+          console.log(`Mock OTP requested for ${body.email} (${body.action})`);
+          resolve({ success: true, mock: true });
+        } else if (path === '/auth/signup') {
+          if (body.otp !== '123456') return reject(new Error('Invalid OTP. Use 123456 for local testing.'));
+          resolve({ success: true, mock: true });
+        } else if (path === '/auth/reset-password') {
+          if (body.otp !== '123456') return reject(new Error('Invalid OTP. Use 123456 for local testing.'));
+          resolve({ success: true, mock: true });
+        } else {
+          resolve({ success: true, mock: true });
+        }
+      }, 500); // simulate network delay
+    });
   }
 }
 

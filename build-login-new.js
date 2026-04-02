@@ -98,7 +98,7 @@ tailwind.config = {
 * { -ms-overflow-style: none; scrollbar-width: none; }
 html, body { overflow-x: hidden; margin: 0; padding: 0; }
 
-/* Enhanced Swipe Animation (Blueish hue matching the editorial side) */
+/* Enhanced Swipe Animation */
 .swipe-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(-120%);
   background: linear-gradient(90deg, transparent 0%, rgba(32, 48, 111, 0.8) 40%, rgba(51, 66, 130, 1) 50%, rgba(32, 48, 111, 0.8) 60%, transparent 100%);
@@ -111,7 +111,14 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
 .form-content.is-fading { opacity: 0; transform: translateY(10px); }
 
 /* Mode visibility toggles */
-[data-mode="signup"] .login-only, [data-mode="login"] .signup-only { display: none; }
+[data-mode]:not([data-mode="login"]) .login-only,
+[data-mode]:not([data-mode="signup"]) .signup-only,
+[data-mode]:not([data-mode="forgot"]) .forgot-only,
+[data-mode]:not([data-mode="otp"]) .otp-only { display: none; }
+
+[data-mode="otp"] .hide-on-otp { display: none; }
+[data-mode="forgot"] .hide-on-forgot { display: none; }
+
 </style>
 </head>
 <body class="bg-background text-on-background font-body selection:bg-secondary-container selection:text-on-secondary-container" data-mode="login">
@@ -120,6 +127,11 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
 <!-- TopAppBar -->
 <header class="fixed top-0 w-full z-50 bg-[#131313]/80 backdrop-blur-xl flex justify-between items-center px-8 h-20 w-full border-b border-white/5">
 <div class="flex items-center gap-3">
+  <!-- Back to Home -->
+  <a href="index.html" class="group flex items-center gap-2 mr-3 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 hover:border-[rgba(217,4,41,0.4)] transition-all duration-300 hover:-translate-x-1 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(217,4,41,0.2)]">
+    <span class="material-symbols-outlined text-[14px] text-white/60 group-hover:text-white transition-colors">arrow_back</span>
+    <span class="font-label text-[10px] font-bold tracking-[0.15em] uppercase text-white/60 group-hover:text-white transition-colors">Home</span>
+  </a>
   <!-- Custom Logo Restored -->
   <div class="w-8 h-8 flex items-center justify-center shrink-0">
     <img src="assets/logo.png" alt="NQR Logo" class="w-full h-full object-contain" style="border-radius: 50% !important; border: 1px solid rgba(255,255,255,0.1);"/>
@@ -159,56 +171,79 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
 <div class="space-y-4">
   <h2 class="font-headline text-4xl font-bold tracking-tight text-on-surface login-only">Welcome back</h2>
   <h2 class="font-headline text-4xl font-bold tracking-tight text-on-surface signup-only">Join NQR</h2>
-  <p class="font-body text-on-surface-variant text-base opacity-70 login-only">Sign in to start generating and sharing QRs</p>
+  <h2 class="font-headline text-4xl font-bold tracking-tight text-on-surface forgot-only">Reset Password</h2>
+  <h2 class="font-headline text-4xl font-bold tracking-tight text-on-surface otp-only">Verify Email</h2>
+  
+  <p class="font-body text-on-surface-variant text-base opacity-70 login-only">Sign in to start generating and sharing QRs.</p>
   <p class="font-body text-on-surface-variant text-base opacity-70 signup-only">Create an account to save and track your QRs.</p>
+  <p class="font-body text-on-surface-variant text-base opacity-70 forgot-only">Enter your email and we'll send a code to reset it.</p>
+  <p class="font-body text-on-surface-variant text-base opacity-70 otp-only" id="otpSubtext">We sent a 6-digit code to your email.</p>
 </div>
 
 <div id="authError" style="color: #ffb4ab; background: rgba(147, 0, 10, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 24px; display: none; text-align: center; border: 1px solid rgba(147, 0, 10, 0.5);"></div>
+<div id="authSuccess" style="color: #b8c4ff; background: rgba(32, 48, 111, 0.4); padding: 12px; border-radius: 8px; margin-bottom: 24px; display: none; text-align: center; border: 1px solid rgba(32, 48, 111, 0.8);"></div>
 
 <!-- Form -->
 <form class="space-y-6" onsubmit="handleAuthSubmit(event, this)">
 <div class="space-y-6">
 
   <!-- Full Name Field (Signup Only) -->
-  <div class="group signup-only">
+  <div class="group signup-only hide-on-otp hide-on-forgot">
     <label class="font-label text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant block mb-2 group-focus-within:text-primary transition-colors">Full Name</label>
     <div class="relative">
-      <input class="w-full bg-surface-container-highest border-none rounded-md px-4 py-4 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary-container transition-all outline-none" placeholder="Jane Doe" type="text"/>
+      <input class="w-full bg-surface-container-highest border-none rounded-md px-4 py-4 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary-container transition-all outline-none" placeholder="Jane Doe" type="text" id="authName"/>
     </div>
   </div>
 
   <!-- Email Field -->
-  <div class="group">
+  <div class="group hide-on-otp">
     <label class="font-label text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant block mb-2 group-focus-within:text-primary transition-colors">Email Address</label>
     <div class="relative">
-      <input class="w-full bg-surface-container-highest border-none rounded-md px-4 py-4 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary-container transition-all outline-none" placeholder="editor@nqr.io" type="email" required/>
+      <input class="w-full bg-surface-container-highest border-none rounded-md px-4 py-4 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary-container transition-all outline-none" placeholder="editor@nqr.io" type="email" id="authEmail"/>
+    </div>
+  </div>
+
+  <!-- OTP Field (OTP Only) -->
+  <div class="group otp-only">
+    <label class="font-label text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant block mb-2 group-focus-within:text-primary transition-colors">Verification Code</label>
+    <div class="relative">
+      <input class="w-full bg-surface-container-highest border-none rounded-md px-4 py-4 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary-container transition-all outline-none text-center font-mono tracking-[0.5em] text-xl" placeholder="••••••" type="text" maxlength="6" id="authOtp"/>
     </div>
   </div>
 
   <!-- Password Field -->
-  <div class="group">
-    <label class="font-label text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant block mb-2 group-focus-within:text-primary transition-colors">Password</label>
+  <div class="group hide-on-forgot hide-on-otp" id="passwordGroup">
+    <div class="flex justify-between items-center mb-2">
+      <label class="font-label text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant group-focus-within:text-primary transition-colors login-only">Password</label>
+      <label class="font-label text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant group-focus-within:text-primary transition-colors signup-only">Create Password</label>
+      <a class="login-only font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60 hover:text-white transition-all active:scale-95 cursor-pointer" onclick="handleSwitch('forgot')">Forgot?</a>
+    </div>
     <div class="relative">
-      <input class="w-full bg-surface-container-highest border-none rounded-md px-4 py-4 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary-container transition-all outline-none auth-pw" placeholder="••••••••" type="password" required id="authPassword"/>
+      <input class="w-full bg-surface-container-highest border-none rounded-md px-4 py-4 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary-container transition-all outline-none auth-pw" placeholder="••••••••" type="password" id="authPassword"/>
       <button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors" type="button" onclick="const p = document.getElementById('authPassword'); const icon = this.querySelector('span'); if(p.type === 'password') { p.type = 'text'; icon.textContent = 'visibility_off'; } else { p.type = 'password'; icon.textContent = 'visibility'; }">
         <span class="material-symbols-outlined text-xl">visibility</span>
       </button>
     </div>
   </div>
-
-  <!-- Turnstile CAPTCHA Section (Temporarily Disabled for Dev to prevent silent freezing) -->
-  <!--
-  <div class="flex items-center justify-center w-full mt-2">
-      <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-theme="dark"></div>
+  
+  <div class="group otp-only" id="newPasswordGroup" style="display: none;">
+    <div class="flex justify-between items-center mb-2">
+      <label class="font-label text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant group-focus-within:text-primary transition-colors">New Password</label>
+    </div>
+    <div class="relative">
+      <input class="w-full bg-surface-container-highest border-none rounded-md px-4 py-4 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary-container transition-all outline-none auth-pw" placeholder="••••••••" type="password" id="authNewPassword"/>
+    </div>
   </div>
-  -->
+
 </div>
 
 <!-- Action -->
 <div class="pt-4 space-y-6">
   <button class="w-full cta-gradient text-on-secondary-container font-headline font-bold py-4 rounded-md shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
     <span class="login-only">Sign In</span>
-    <span class="signup-only">Create Account</span>
+    <span class="signup-only">Verify Email</span>
+    <span class="forgot-only">Send Code</span>
+    <span class="otp-only" id="otpBtnText">Confirm</span>
     <span class="material-symbols-outlined text-lg" data-icon="arrow_forward">arrow_forward</span>
   </button>
   
@@ -222,13 +257,17 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
       Already have an account? <span class="text-secondary font-bold">Sign In</span>
     </a>
   </div>
-  
-  <div class="flex justify-center pt-2">
-    <a href="index.html" class="flex items-center gap-2 font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60 hover:text-white transition-all hover:scale-105">
-      <span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'wght' 600;">arrow_back</span>
-      Return Home
+  <div class="flex justify-center forgot-only">
+    <a class="font-label text-xs uppercase tracking-[0.15em] text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" onclick="handleSwitch('login')">
+      Back to <span class="text-secondary font-bold">Sign In</span>
     </a>
   </div>
+  <div class="flex justify-center otp-only">
+    <a class="font-label text-xs uppercase tracking-[0.15em] text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" onclick="handleSwitch('login')">
+      Cancel & Return to <span class="text-secondary font-bold">Sign In</span>
+    </a>
+  </div>
+  
 </div>
 </form>
 
@@ -239,12 +278,12 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
 <footer class="bg-[#131313] w-full py-12 border-t border-[#e5e2e1]/10">
 <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-8 gap-6">
   <div class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40">
-      © 2024 NQR Editorial Link Sharing. All rights reserved.
+      © 2026 NQR. All rights reserved by NEVERNO.
   </div>
   <div class="flex gap-8">
-    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="#">Privacy Policy</a>
-    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="#">Terms of Service</a>
-    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="#">Help Center</a>
+    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="privacy-policy.html">Privacy Policy</a>
+    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="terms-of-service.html">Terms of Service</a>
+    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="help-center.html">Help Center</a>
   </div>
 </div>
 </footer>
@@ -254,10 +293,18 @@ const overlay = document.getElementById('swipeOverlay');
 const formContent = document.getElementById('formContent');
 const body = document.body;
 
+let activeFlow = null; // 'signup' or 'reset' when in OTP mode
+
 function handleSwitch(mode) {
   overlay.classList.add('is-active');
   formContent.classList.add('is-fading');
   
+  if (mode !== 'otp') {
+    document.getElementById('newPasswordGroup').style.display = 'none';
+    document.getElementById('authError').style.display = 'none';
+    document.getElementById('authSuccess').style.display = 'none';
+  }
+
   setTimeout(() => {
     body.setAttribute('data-mode', mode);
   }, 400);
@@ -271,25 +318,113 @@ function handleSwitch(mode) {
   }, 800);
 }
 
+function showOtpScreen(flow) {
+  activeFlow = flow;
+  document.getElementById('otpSubtext').innerText = \`We sent a 6-digit code to \${document.getElementById('authEmail').value}\`;
+  
+  if (flow === 'reset') {
+    document.getElementById('newPasswordGroup').style.display = 'block';
+    document.getElementById('otpBtnText').innerText = 'Reset Password';
+  } else {
+    document.getElementById('newPasswordGroup').style.display = 'none';
+    document.getElementById('otpBtnText').innerText = 'Create Account';
+  }
+  
+  handleSwitch('otp');
+}
+
 async function handleAuthSubmit(e, form) {
   e.preventDefault();
   const errorEl = document.getElementById('authError');
+  const successEl = document.getElementById('authSuccess');
   errorEl.style.display = 'none';
+  successEl.style.display = 'none';
 
-  const email = form.querySelector('input[type=email]').value.trim().toLowerCase();
+  const email = document.getElementById('authEmail').value.trim().toLowerCase();
   const password = document.getElementById('authPassword').value;
+  const otp = document.getElementById('authOtp').value.trim();
+  const mode = document.body.getAttribute('data-mode');
 
-  if (email !== 'editor@neverno.in' || password !== 'password123') {
-    errorEl.innerHTML = 'Invalid credentials.<br>Use: <b>editor@neverno.in</b> & <b>password123</b>';
+  if (!email.endsWith('@neverno.in') && mode !== 'otp') {
+    if (mode === 'signup' || mode === 'forgot') {
+      errorEl.innerHTML = 'Account operations are restricted to @neverno.in domains only.';
+    } else {
+      errorEl.innerHTML = 'The login email ID or password you entered is incorrect.';
+    }
     errorEl.style.display = 'block';
     return;
   }
 
-  window.location.href = 'app-generator.html';
+  if (mode === 'login' && (!email || !password)) {
+    errorEl.innerHTML = 'Email and password are required.';
+    errorEl.style.display = 'block'; return;
+  }
+
+  const submitBtn = form.querySelector('button[type=submit]');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.innerHTML = 'Processing...';
+  submitBtn.disabled = true;
+
+  try {
+    if (mode === 'login') {
+      await window.API.login(email, password);
+      window.location.href = 'app-generator.html';
+      
+    } else if (mode === 'signup') {
+      // Step 1: Request OTP for Signup
+      if(!password) throw new Error('Password is required');
+      await window.API.requestOtp(email, 'signup');
+      successEl.innerHTML = 'Code sent! Check your inbox.';
+      successEl.style.display = 'block';
+      showOtpScreen('signup');
+      
+    } else if (mode === 'forgot') {
+      // Step 1: Request OTP for Reset
+      await window.API.requestOtp(email, 'reset');
+      successEl.innerHTML = 'Reset code sent! Check your inbox.';
+      successEl.style.display = 'block';
+      showOtpScreen('reset');
+      
+    } else if (mode === 'otp') {
+      // Step 2: Verify OTP and finalize
+      if (!otp || otp.length !== 6) throw new Error('Enter a valid 6-digit code');
+      
+      if (activeFlow === 'signup') {
+        const fullName = (document.getElementById('authName').value || '').trim() || 'User';
+        const nameParts = fullName.split(' ');
+        await window.API.signup({ 
+          email, 
+          password, 
+          firstName: nameParts[0], 
+          lastName: nameParts.slice(1).join(' ')
+        }, otp);
+        window.location.href = 'app-generator.html';
+        
+      } else if (activeFlow === 'reset') {
+        const newPassword = document.getElementById('authNewPassword').value;
+        if (!newPassword) throw new Error('Enter a new password');
+        await window.API.resetPassword(email, otp, newPassword);
+        
+        successEl.innerHTML = 'Password reset successfully! You can now log in.';
+        successEl.style.display = 'block';
+        handleSwitch('login');
+      }
+    }
+  } catch (err) {
+    if (mode === 'login') {
+      errorEl.innerHTML = 'The login email ID or password you entered is incorrect.';
+    } else {
+      errorEl.innerHTML = err.message || 'Operation failed. Please try again.';
+    }
+    errorEl.style.display = 'block';
+  } finally {
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+  }
 }
 </script>
 </body>
-</html>`;
+</html>\`;
 
 fs.writeFileSync(path.join(__dirname, 'user-login.html'), html, { encoding: 'utf8', flag: 'w' });
 console.log('Login page updated with new UI template!');

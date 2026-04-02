@@ -117,6 +117,11 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
 <!-- TopAppBar -->
 <header class="fixed top-0 w-full z-50 bg-[#131313]/80 backdrop-blur-xl flex justify-between items-center px-8 h-20 w-full border-b border-white/5">
 <div class="flex items-center gap-3">
+  <!-- Back to Home -->
+  <a href="index.html" class="group flex items-center gap-2 mr-3 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 hover:border-[rgba(217,4,41,0.4)] transition-all duration-300 hover:-translate-x-1 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(217,4,41,0.2)]">
+    <span class="material-symbols-outlined text-[14px] text-white/60 group-hover:text-white transition-colors">arrow_back</span>
+    <span class="font-label text-[10px] font-bold tracking-[0.15em] uppercase text-white/60 group-hover:text-white transition-colors">Home</span>
+  </a>
   <!-- Custom Logo Restored -->
   <div class="w-8 h-8 flex items-center justify-center shrink-0">
     <img src="assets/logo.png" alt="NQR Logo" class="w-full h-full object-contain" style="border-radius: 50% !important; border: 1px solid rgba(255,255,255,0.1);"/>
@@ -184,7 +189,10 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
 
   <!-- Password Field -->
   <div class="group">
-    <label class="font-label text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant block mb-2 group-focus-within:text-primary transition-colors">Password</label>
+    <div class="flex justify-between items-center mb-2">
+      <label class="font-label text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant group-focus-within:text-primary transition-colors">Password</label>
+      <a href="forgot-password.html" class="login-only font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60 hover:text-white transition-all active:scale-95 cursor-pointer">Forgot?</a>
+    </div>
     <div class="relative">
       <input class="w-full bg-surface-container-highest border-none rounded-md px-4 py-4 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary-container transition-all outline-none auth-pw" placeholder="••••••••" type="password" required id="authPassword"/>
       <button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors" type="button" onclick="const p = document.getElementById('authPassword'); const icon = this.querySelector('span'); if(p.type === 'password') { p.type = 'text'; icon.textContent = 'visibility_off'; } else { p.type = 'password'; icon.textContent = 'visibility'; }">
@@ -236,12 +244,12 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
 <footer class="bg-[#131313] w-full py-12 border-t border-[#e5e2e1]/10">
 <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-8 gap-6">
   <div class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40">
-      © 2024 NQR Editorial Link Sharing. All rights reserved.
+      © 2026 NQR. All rights reserved by NEVERNO.
   </div>
   <div class="flex gap-8">
-    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="#">Privacy Policy</a>
-    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="#">Terms of Service</a>
-    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="#">Help Center</a>
+    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="privacy-policy.html">Privacy Policy</a>
+    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="terms-of-service.html">Terms of Service</a>
+    <a class="font-inter text-xs uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-opacity" href="help-center.html">Help Center</a>
   </div>
 </div>
 </footer>
@@ -275,29 +283,47 @@ async function handleAuthSubmit(e, form) {
 
   const email = form.querySelector('input[type=email]').value.trim().toLowerCase();
   const password = document.getElementById('authPassword').value;
-
   const mode = document.body.getAttribute('data-mode');
 
-  if (mode === 'signup') {
-    localStorage.setItem('nqr_user_' + email, password);
-    sessionStorage.setItem('userLoggedIn', 'true');
-    sessionStorage.setItem('userEmail', email);
-    window.location.href = 'app-generator.html';
+  if (!email.endsWith('@neverno.in')) {
+    if (mode === 'signup') {
+      errorEl.innerHTML = 'Account creation is restricted to @neverno.in domains only.';
+    } else {
+      errorEl.innerHTML = 'The login email ID or password you entered is incorrect.';
+    }
+    errorEl.style.display = 'block';
     return;
   }
 
-  const storedPass = localStorage.getItem('nqr_user_' + email);
+  const submitBtn = form.querySelector('button[type=submit]');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.innerHTML = 'Processing...';
+  submitBtn.disabled = true;
 
-  if (
-    (email === 'editor@neverno.in' && password === 'password123') ||
-    (storedPass && storedPass === password)
-  ) {
-    sessionStorage.setItem('userLoggedIn', 'true');
-    sessionStorage.setItem('userEmail', email);
+  try {
+    if (mode === 'signup') {
+      const fullName = (form.querySelector('input[type=text]').value || '').trim() || 'User';
+      const nameParts = fullName.split(' ');
+      await window.API.signup({ 
+        email, 
+        password, 
+        firstName: nameParts[0], 
+        lastName: nameParts.slice(1).join(' ')
+      });
+    } else {
+      await window.API.login(email, password);
+    }
     window.location.href = 'app-generator.html';
-  } else {
-    errorEl.innerHTML = 'Invalid credentials.<br>Use registered account or: <b>editor@neverno.in</b> & <b>password123</b>';
+  } catch (err) {
+    if (mode === 'login') {
+      errorEl.innerHTML = 'The login email ID or password you entered is incorrect.';
+    } else {
+      errorEl.innerHTML = err.message || 'Authentication failed. Please try again.';
+    }
     errorEl.style.display = 'block';
+  } finally {
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
   }
 }
 </script>
