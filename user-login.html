@@ -285,6 +285,15 @@ async function handleAuthSubmit(e, form) {
   const password = document.getElementById('authPassword').value;
   const mode = document.body.getAttribute('data-mode');
 
+  // Hardcoded tester login
+  if (email === 'tester@neverno.in' && password === 'tester123') {
+    sessionStorage.setItem('userLoggedIn', 'true');
+    sessionStorage.setItem('userEmail', email);
+    sessionStorage.setItem('userName', 'Tester Account');
+    window.location.href = 'app-generator.html';
+    return;
+  }
+
   if (!email.endsWith('@neverno.in')) {
     if (mode === 'signup') {
       errorEl.innerHTML = 'Account creation is restricted to @neverno.in domains only.';
