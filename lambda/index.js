@@ -208,14 +208,70 @@ exports.handler = async (event) => {
       return response(200, result.Items);
     }
 
-    // ── REDIRECTOR (Scan Tracking) ──
+    // ── REDIRECTOR (Scan Tracking & Security) ──
     if (resource === "/s/{qrId}" && httpMethod === "GET") {
       const { qrId } = pathParameters;
-      const result = await docClient.send(new GetCommand({ TableName: QRS_TABLE, Key: { id: qrId } }));
+      const pinProvided = event.queryStringParameters?.pin || null;
       
+      const result = await docClient.send(new GetCommand({ TableName: QRS_TABLE, Key: { id: qrId } }));
       if (!result.Item) return response(404, { error: "QR not found" });
 
-      // Increment Scan Count
+      const item = result.Item;
+      const createdAt = new Date(item.createdAt).getTime();
+      const now = Date.now();
+      const options = item.options || {};
+      const scans = item.scans || 0;
+
+      // 1. Check Expiry
+      let isExpired = false;
+      const expiryType = options.expiresAt || 'never';
+      if (expiryType === '1h' && now - createdAt > 3600000) isExpired = true;
+      if (expiryType === '24h' && now - createdAt > 86400000) isExpired = true;
+      if (expiryType === '7d' && now - createdAt > 604800000) isExpired = true;
+      if (expiryType === '1scan' && scans >= 1) isExpired = true;
+
+      if (isExpired) {
+        return responseHTML(410, `
+          <div style="text-align:center;padding:50px;font-family:sans-serif;color:#fff;background:#0F1636;min-height:100vh;display:flex;flex-direction:column;justify-content:center;">
+            <div style="font-size:60px;margin-bottom:20px;">⌛</div>
+            <h1 style="font-size:24px;">Link Expired</h1>
+            <p style="color:rgba(255,255,255,0.6);">This QR code was set to expire and is no longer active.</p>
+            <a href="https://neverq.in" style="margin-top:20px;display:inline-block;color:#D90429;text-decoration:none;font-weight:bold;">Create your own NQR &rarr;</a>
+          </div>
+        `);
+      }
+
+      // 2. Check Password (PIN)
+      if (options.password && options.password !== pinProvided) {
+        return responseHTML(200, `
+          <div style="text-align:center;padding:50px;font-family:sans-serif;color:#fff;background:#0F1636;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+             <div style="background:rgba(255,255,255,0.05);padding:40px;border-radius:24px;border:1px solid rgba(255,255,255,0.1);max-width:400px;width:100%;">
+                <div style="font-size:40px;margin-bottom:20px;">🔒</div>
+                <h1 style="font-size:20px;margin-bottom:10px;">Password Protected</h1>
+                <p style="color:rgba(255,255,255,0.6);margin-bottom:30px;font-size:14px;">Please enter the 4-digit PIN to access this link.</p>
+                
+                <form id="pinForm" style="display:flex;flex-direction:column;gap:15px;">
+                  <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="8" style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.2);padding:15px;border-radius:12px;color:#fff;text-align:center;font-size:20px;letter-spacing:0.3em;outline:none;"/>
+                  <button type="submit" style="background:#D90429;color:#fff;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;font-size:16px;">Access Link</button>
+                </form>
+                <p id="errMsg" style="color:#D90429;margin-top:15px;font-size:13px;display:none;">Incorrect PIN. Please try again.</p>
+             </div>
+             <script>
+               document.getElementById('pinForm').onsubmit = (e) => {
+                 e.preventDefault();
+                 const pin = document.getElementById('pinInput').value;
+                 if(!pin) return;
+                 window.location.href = window.location.pathname + '?pin=' + pin;
+               };
+               if (window.location.search.includes('pin=')) {
+                 document.getElementById('errMsg').style.display = 'block';
+               }
+             </script>
+          </div>
+        `);
+      }
+
+      // 3. Success: Increment Scan Count and Redirect
       await docClient.send(new UpdateCommand({
         TableName: QRS_TABLE,
         Key: { id: qrId },
@@ -223,12 +279,12 @@ exports.handler = async (event) => {
         ExpressionAttributeValues: { ":val": 1 }
       }));
 
-      // Redirect to target URL
       return {
         statusCode: 302,
-        headers: { Location: result.Item.url }
+        headers: { Location: item.url }
       };
     }
+
 
     // ── ADMIN Endpoints ──
     if (path === "/admin/stats" && httpMethod === "GET") {
@@ -304,3 +360,32 @@ function response(statusCode, body) {
     body: JSON.stringify(body)
   };
 }
+
+function responseHTML(statusCode, html) {
+  const origin = process.env.ALLOWED_ORIGIN || "*"; 
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "text/html",
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
+    },
+    body: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>NQR Secure Access</title>
+          <style>
+            body { margin: 0; padding: 0; background: #0F1636; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+      </html>
+    `
+  };
+}
+

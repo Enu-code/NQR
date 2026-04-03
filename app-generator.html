@@ -110,7 +110,7 @@
         </div>
         <div class="form-group mt-md">
           <label class="form-label">QR Name (Internal)</label>
-          <input type="text" class="form-input" placeholder="e.g. Campaign Fall 2026"/>
+          <input type="text" class="form-input" id="linkName" placeholder="e.g. Campaign Fall 2026"/>
         </div>
         <div class="gen-options card mt-lg card--static">
           <div class="card-inner">
@@ -219,6 +219,10 @@
           <textarea class="form-input" id="textInput" placeholder="Enter any text here to show on scan..."></textarea>
           <div class="t-small text-muted2 text-right mt-xs">Max 500 characters</div>
         </div>
+        <div class="form-group mt-md">
+           <label class="form-label">QR Name (Internal)</label>
+           <input type="text" class="form-input" id="textName" placeholder="e.g. Personal Note"/>
+        </div>
       </div>
 
       <!-- PAYMENT TAB -->
@@ -246,6 +250,10 @@
         <div class="form-group mt-md">
           <label class="form-label">Payment Note / Reference</label>
           <input type="text" class="form-input" id="noteInput" placeholder="e.g. Invoice #1024"/>
+        </div>
+        <div class="form-group mt-md">
+           <label class="form-label">QR Name (Internal)</label>
+           <input type="text" class="form-input" id="paymentName" placeholder="e.g. Rent Payment"/>
         </div>
       </div>
     </div>
@@ -505,16 +513,32 @@
     genBtn.disabled = true;
 
     try {
-      // ☁️ CLOUD SYNC: Save to AWS to get a record in Admin Panel
-      const qrRecord = await window.API.saveQR({
-        url: currentContent,
-        name: document.getElementById('linkInput')?.value || 'New QR', 
-        options: currentOptions
-      });
-
-      // Determine if we should use a Tracking Link or RAW data
+      // 📝 Extract Metadata (Password, Expiry, Name)
+      const isPasswordProtected = document.getElementById('passwordProtectToggle')?.checked;
+      const pin = isPasswordProtected ? document.getElementById('filePinInput')?.value : null;
+      const expiry = document.getElementById('fileExpireSelect')?.value || 'never';
+      
       const activeTab = document.querySelector('.tab-btn.active');
       const tabTarget = activeTab ? activeTab.dataset.target : 'tab-link';
+      
+      // Dynamic name based on tab
+      let qrName = 'New QR';
+      if (tabTarget === 'tab-link') qrName = document.getElementById('linkName')?.value || 'Link';
+      if (tabTarget === 'tab-contact') qrName = (document.getElementById('vcardFirstName')?.value + ' ' + document.getElementById('vcardLastName')?.value).trim() || 'Contact';
+      if (tabTarget === 'tab-text') qrName = document.getElementById('textName')?.value || 'Text Note';
+      if (tabTarget === 'tab-file') qrName = 'Shared File';
+      if (tabTarget === 'tab-payment') qrName = document.getElementById('paymentName')?.value || 'Payment Request';
+
+      // ☁️ CLOUD SYNC: Save record in Admin Panel
+      const qrRecord = await window.API.saveQR({
+        url: currentContent,
+        name: qrName, 
+        options: {
+          ...currentOptions,
+          password: pin, // Send password PIN
+          expiresAt: expiry // Send expiry duration
+        }
+      });
       
       const trackingUrl = `${window.NQR_CONFIG.API.BASE_URL}/s/${qrRecord.id}`;
 
