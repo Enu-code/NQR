@@ -6,7 +6,7 @@ const CONFIG = {
     NAME: "NQR",
     FULL_NAME: "NQR — Smart QR Sharing",
     POWERED_BY: "Neverno",
-    DOMAIN: "neverno.in",
+    DOMAIN: "neverq.in",
     SUPPORT_EMAIL: "support@neverno.in",
     VERSION: "2.1.0"
   },
