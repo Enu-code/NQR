@@ -504,31 +504,40 @@
     genBtn.innerHTML = '✨ Syncing to Cloud...';
     genBtn.disabled = true;
 
-
     try {
-      // ☁️ CLOUD SYNC: Save to AWS to get a tracking ID
+      // ☁️ CLOUD SYNC: Save to AWS to get a record in Admin Panel
       const qrRecord = await window.API.saveQR({
         url: currentContent,
-        name: document.getElementById('linkInput').value || 'New QR', // Default name
+        name: document.getElementById('linkInput')?.value || 'New QR', 
         options: currentOptions
       });
 
-      // Update the QR content to use the PRODUCTION Tracking Link
-      const trackingUrl = `${window.NQR_CONFIG.API.BASE_URL}/s/${qrRecord.id}`;
-      currentOptions.data = trackingUrl;
+      // Determine if we should use a Tracking Link or RAW data
+      const activeTab = document.querySelector('.tab-btn.active');
+      const tabTarget = activeTab ? activeTab.dataset.target : 'tab-link';
       
-      // Update UI Modal Short-link
-      if (document.getElementById('modalShortLink')) {
-        document.getElementById('modalShortLink').value = trackingUrl;
+      const trackingUrl = `${window.NQR_CONFIG.API.BASE_URL}/s/${qrRecord.id}`;
+
+      // logic: ONLY tab-link and tab-file MUST use tracking for it to be useful
+      // tab-contact, tab-payment, tab-text work best when scanned as RAW data
+      if (tabTarget === 'tab-link' || tabTarget === 'tab-file') {
+        currentOptions.data = trackingUrl; 
+        if (document.getElementById('modalShortLink')) document.getElementById('modalShortLink').value = trackingUrl;
+      } else {
+        // For Contact, Payment, and Text, we use the RAW content directly in the QR
+        // This ensures Native Phone support (Add Contact, UPI popup) works instantly.
+        currentOptions.data = currentContent;
+        if (document.getElementById('modalShortLink')) document.getElementById('modalShortLink').value = trackingUrl;
       }
 
-      updatePreview(true); // render to modal with tracking link
+      updatePreview(true); 
       qrModal.classList.add('active');
       document.body.style.overflow = 'hidden';
 
     } catch (err) {
       console.error('Cloud Sync Failed:', err);
-      // Fallback: If cloud fails, show the raw link so it at least works locally
+      // Fallback: If cloud fails, show the raw content so generator still works
+      currentOptions.data = currentContent;
       updatePreview(true); 
       qrModal.classList.add('active');
       document.body.style.overflow = 'hidden';
