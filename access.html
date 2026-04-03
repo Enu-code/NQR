@@ -308,6 +308,15 @@ async function handleAuthSubmit(e, form) {
   const errorEl = document.getElementById('authError');
   errorEl.style.display = 'none';
 
+  const email = form.querySelector('input[type=email]').value;
+  const password = document.getElementById('authPassword').value;
+
+  // Hardcoded tester login
+  if (email.toLowerCase() === 'tester@neverno.in' && password === 'tester123') {
+    window.location.href = 'app-generator.html';
+    return;
+  }
+
   const turnstileResponse = form.querySelector('[name="cf-turnstile-response"]').value;
   if (!turnstileResponse) {
     errorEl.textContent = 'Please complete the security check.';
@@ -315,7 +324,6 @@ async function handleAuthSubmit(e, form) {
     return;
   }
 
-  const email = form.querySelector('input[type=email]').value;
   if (!email.toLowerCase().endsWith('@neverno.in')) {
     errorEl.textContent = 'Use your @neverno.in email address.';
     errorEl.style.display = 'block';
