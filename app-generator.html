@@ -164,35 +164,48 @@
 
       <!-- FILE TAB -->
       <div class="gen-form-content" id="tab-file">
-        <div class="gen-upload-area">
+        <!-- Hidden real file input -->
+        <input type="file" id="filePickerInput" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.zip,.mp4" style="display:none"/>
+
+        <div class="gen-upload-area" id="fileDropZone">
           <div class="icon-wrap icon-wrap--blue icon-wrap--lg mb-md" style="margin-left:auto;margin-right:auto">
             <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
-          <div class="t-h4">Drag & Drop file to securely share</div>
-          <p class="t-small text-muted mt-xs">Supports PDF, Images, DOCX, ZIP up to 5GB.</p>
-          <button class="btn btn--secondary mt-md">Browse Files</button>
+          <div class="t-h4" id="fileDropLabel">Drag &amp; Drop file to securely share</div>
+          <p class="t-small text-muted mt-xs" id="fileDropSub">Supports PDF, Images, DOCX, ZIP up to 5GB.</p>
+          <button class="btn btn--secondary mt-md" id="browseFilesBtn">Browse Files</button>
         </div>
+
         <div class="gen-options card mt-lg card--static">
           <div class="card-inner">
+            <!-- Password Protect -->
             <div class="flex items-center justify-between">
               <div>
                 <div class="t-h4" style="font-size:0.9rem">Password Protect</div>
                 <div class="t-small text-muted mt-xs">Require a PIN to download file.</div>
               </div>
-              <label class="switch"><input type="checkbox"/><span class="switch-slider"></span></label>
+              <label class="switch"><input type="checkbox" id="passwordProtectToggle"/><span class="switch-slider"></span></label>
             </div>
+            <!-- PIN input, shown only when toggle is ON -->
+            <div id="pinInputWrap" style="display:none; margin-top:12px">
+              <input type="text" class="form-input" id="filePinInput" placeholder="Set a 4-digit PIN (e.g. 1234)" maxlength="8" style="letter-spacing:0.2em"/>
+              <div class="t-small text-muted mt-xs">Scanners must enter this PIN to access the file.</div>
+            </div>
+
             <hr class="divider" style="margin:var(--sp-md) 0"/>
+
+            <!-- Auto Expire -->
             <div class="flex items-center justify-between">
               <div>
                 <div class="t-h4" style="font-size:0.9rem">Auto Expire</div>
                 <div class="t-small text-muted mt-xs">Delete file after a certain time/scans.</div>
               </div>
-              <select class="form-input" style="width:140px;padding:0.4rem;font-size:0.8rem">
-                <option>Never</option>
-                <option>1 Hour</option>
-                <option>24 Hours</option>
-                <option>7 Days</option>
-                <option>After 1 Scan</option>
+              <select class="form-input" id="fileExpireSelect" style="width:140px;padding:0.4rem;font-size:0.8rem">
+                <option value="never">Never</option>
+                <option value="1h">1 Hour</option>
+                <option value="24h">24 Hours</option>
+                <option value="7d">7 Days</option>
+                <option value="1scan">After 1 Scan</option>
               </select>
             </div>
           </div>
@@ -422,11 +435,74 @@
   });
 
 
+  // ── FILE TAB: Browse button, drag-and-drop, password protect toggle ──
+  let selectedFileData = null; // stores base64 or file object name
+
+  const browseBtn = document.getElementById('browseFilesBtn');
+  const filePicker = document.getElementById('filePickerInput');
+  const dropZone = document.getElementById('fileDropZone');
+  const pwToggle = document.getElementById('passwordProtectToggle');
+  const pinWrap = document.getElementById('pinInputWrap');
+
+  // Browse button → triggers the hidden file input
+  if (browseBtn && filePicker) {
+    browseBtn.addEventListener('click', () => filePicker.click());
+
+    filePicker.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) handleFileSelected(file);
+    });
+  }
+
+  // Drag & Drop wiring
+  if (dropZone) {
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--c-red)';
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.borderColor = '';
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '';
+      const file = e.dataTransfer.files[0];
+      if (file) handleFileSelected(file);
+    });
+  }
+
+  function handleFileSelected(file) {
+    selectedFileData = file;
+    const label = document.getElementById('fileDropLabel');
+    const sub = document.getElementById('fileDropSub');
+    if (label) label.textContent = `✅ ${file.name}`;
+    if (sub) sub.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB · ${file.type || 'Unknown type'}`;
+    // Set content to a placeholder — file uploads need cloud hosting, so show the file name for now
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab && activeTab.dataset.target === 'tab-file') {
+      currentContent = `File: ${file.name}`;
+    }
+  }
+
+  // Password Protect toggle → show/hide PIN input
+  if (pwToggle && pinWrap) {
+    pwToggle.addEventListener('change', () => {
+      pinWrap.style.display = pwToggle.checked ? 'block' : 'none';
+      if (!pwToggle.checked) {
+        const pinInput = document.getElementById('filePinInput');
+        if (pinInput) pinInput.value = '';
+      }
+    });
+  }
+
+
+
   async function openModal() {
     const genBtn = document.getElementById('generateBtn');
     const originalText = genBtn.innerHTML;
     genBtn.innerHTML = '✨ Syncing to Cloud...';
     genBtn.disabled = true;
+
 
     try {
       // ☁️ CLOUD SYNC: Save to AWS to get a tracking ID
