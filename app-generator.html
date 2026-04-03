@@ -138,25 +138,25 @@
         <div class="grid" style="grid-template-columns:1fr 1fr;gap:var(--sp-md)">
           <div class="form-group">
             <label class="form-label">First Name</label>
-            <input type="text" class="form-input" placeholder="Eshaan"/>
+            <input type="text" class="form-input" id="vcardFirstName" placeholder="Eshaan"/>
           </div>
           <div class="form-group">
             <label class="form-label">Last Name</label>
-            <input type="text" class="form-input" placeholder="Roy"/>
+            <input type="text" class="form-input" id="vcardLastName" placeholder="Roy"/>
           </div>
         </div>
         <div class="form-group mt-md">
-          <label class="form-label">Company & Designation</label>
+          <label class="form-label">Company &amp; Designation</label>
           <div class="flex gap-sm">
-            <input type="text" class="form-input" placeholder="Company Name"/>
-            <input type="text" class="form-input" placeholder="Job Title"/>
+            <input type="text" class="form-input" id="vcardCompany" placeholder="Company Name"/>
+            <input type="text" class="form-input" id="vcardTitle" placeholder="Job Title"/>
           </div>
         </div>
         <div class="form-group mt-md">
-          <label class="form-label">Phone & Email</label>
+          <label class="form-label">Phone &amp; Email</label>
           <div class="flex gap-sm">
-            <input type="tel" class="form-input" placeholder="+91 98765 43210"/>
-            <input type="email" class="form-input" placeholder="eshaan@example.in"/>
+            <input type="tel" class="form-input" id="vcardPhone" placeholder="+91 98765 43210"/>
+            <input type="email" class="form-input" id="vcardEmail" placeholder="eshaan@example.in"/>
           </div>
         </div>
 
@@ -390,6 +390,37 @@
   const logoInput = document.getElementById('logoInput');
   const removeLogoBtn = document.getElementById('removeLogoBtn');
   const patternBtns = document.querySelectorAll('.gen-pattern-btn');
+
+  // ── vCARD BUILDER: reads form fields and builds a valid vCard string ──
+  function buildVCard() {
+    const firstName = (document.getElementById('vcardFirstName')?.value || '').trim();
+    const lastName  = (document.getElementById('vcardLastName')?.value  || '').trim();
+    const company   = (document.getElementById('vcardCompany')?.value   || '').trim();
+    const title     = (document.getElementById('vcardTitle')?.value     || '').trim();
+    const phone     = (document.getElementById('vcardPhone')?.value     || '').trim();
+    const email     = (document.getElementById('vcardEmail')?.value     || '').trim();
+
+    let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
+    if (firstName || lastName) vcard += `N:${lastName};${firstName}\nFN:${firstName} ${lastName}\n`;
+    if (company)  vcard += `ORG:${company}\n`;
+    if (title)    vcard += `TITLE:${title}\n`;
+    if (phone)    vcard += `TEL;TYPE=CELL:${phone}\n`;
+    if (email)    vcard += `EMAIL:${email}\n`;
+    vcard += 'END:VCARD';
+    return vcard;
+  }
+
+  // ── Wire up vCard inputs to update currentContent live as user types ──
+  ['vcardFirstName','vcardLastName','vcardCompany','vcardTitle','vcardPhone','vcardEmail'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      const activeTab = document.querySelector('.tab-btn.active');
+      if (activeTab && activeTab.dataset.target === 'tab-contact') {
+        currentContent = buildVCard();
+      }
+    });
+  });
+
 
   async function openModal() {
     const genBtn = document.getElementById('generateBtn');
@@ -652,7 +683,7 @@
       } else if (btn.dataset.target === 'tab-text') {
         currentContent = textInput.value || 'Hello NQR';
       } else if (btn.dataset.target === 'tab-contact') {
-        currentContent = "BEGIN:VCARD\nVERSION:3.0\nN:Doe;Jane\nEND:VCARD";
+        currentContent = buildVCard();
       } else if (btn.dataset.target === 'tab-file') {
         currentContent = "https://neverq.in/dl/file-link";
       } else if (btn.dataset.target === 'tab-payment') {
