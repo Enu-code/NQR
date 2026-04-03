@@ -313,6 +313,9 @@ async function handleAuthSubmit(e, form) {
 
   // Hardcoded tester login
   if (email.toLowerCase() === 'tester@neverno.in' && password === 'tester123') {
+    sessionStorage.setItem('userLoggedIn', 'true');
+    sessionStorage.setItem('userEmail', email);
+    sessionStorage.setItem('userName', 'Tester Account');
     window.location.href = 'app-generator.html';
     return;
   }
