@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: NQR Production Backend - SAM Infrastructure
+Resources:
+  NqrApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: NqrApiFunction
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Environment:
+        Variables:
+          USERS_TABLE:
+            Ref: NqrUsersTable
+          QRS_TABLE:
+            Ref: NqrQrsTable
+          OTPS_TABLE:
+            Ref: NqrOtpsTable
+          SES_SENDER: support@neverno.in
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: NqrUsersTable
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: NqrQrsTable
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: NqrOtpsTable
+      - Statement:
+        - Effect: Allow
+          Action:
+          - ses:SendEmail
+          Resource: '*'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+        ScanRedirect:
+          Type: Api
+          Properties:
+            Path: /s/{qrId}
+            Method: GET
+    Metadata:
+      SamResourceId: NqrApiFunction
+  NqrUsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: NqrUsers
+      AttributeDefinitions:
+      - AttributeName: email
+        AttributeType: S
+      KeySchema:
+      - AttributeName: email
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+  NqrQrsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: NqrQrs
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+  NqrOtpsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: NqrOtps
+      AttributeDefinitions:
+      - AttributeName: email
+        AttributeType: S
+      KeySchema:
+      - AttributeName: email
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: expiration
+        Enabled: true
+Outputs:
+  ApiUrl:
+    Description: NQR Production API URL
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod
