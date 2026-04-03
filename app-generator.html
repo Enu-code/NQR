@@ -323,7 +323,7 @@
           <div class="gen-qr-wrap flex items-center justify-center" id="modalQrWrap">
             <!-- QR renders here -->
           </div>
-          <div class="qr-watermark" id="uiWatermark">Powered By NQR</div>
+          <div class="qr-watermark" id="uiWatermark">Powered By NEVERNO</div>
           <div class="qr-modal__glow"></div>
         </div>
       </div>
@@ -498,7 +498,7 @@
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.letterSpacing = "0.1em";
-        ctx.fillText("POWERED BY NQR", canvas.width / 2, 1000 + (watermarkHeight / 2) - 10);
+        ctx.fillText("POWERED BY NEVERNO", canvas.width / 2, 1000 + (watermarkHeight / 2) - 10);
         
         const link = document.createElement('a');
         link.download = `nqr-${Date.now()}.png`;
@@ -543,7 +543,7 @@
       textNode.setAttribute("letter-spacing", "0.1em");
       textNode.setAttribute("fill", currentOptions.dotsOptions.color || "#0F1636");
       textNode.setAttribute("opacity", "0.4");
-      textNode.textContent = "POWERED BY NQR";
+      textNode.textContent = "POWERED BY NEVERNO";
       
       svgElem.appendChild(textNode);
       
