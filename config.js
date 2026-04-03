@@ -11,12 +11,12 @@ const CONFIG = {
     VERSION: "2.1.0"
   },
   API: {
-    // 🌐 PRODUCTION AWS API
-    // Replace with your URL after 'sam deploy'
-    BASE_URL: 'https://PASTE_YOUR_AWS_API_URL_HERE.execute-api.us-east-1.amazonaws.com/Prod',
+    // 🌐 PRODUCTION AWS API (eu-north-1 Stockholm)
+    // After running 'sam deploy', paste your specific API ID below.
+    BASE_URL: 'https://ka6qf6xn15.execute-api.eu-north-1.amazonaws.com/Prod',
   },
   STORAGE: {
-    USE_LOCAL: false, // Switch to cloud storage
+    USE_LOCAL: false, // Cloud storage enabled for public sync
   }
 };
 

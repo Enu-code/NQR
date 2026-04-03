@@ -55,8 +55,8 @@ exports.handler = async (event) => {
         // Send a support email
         await sendSESEmail(
           SES_SENDER, // Send to ourselves or a support inbox
-          \`New Support Request from \${email}\`,
-          \`<p><b>From:</b> \${email}</p><p><b>Message:</b><br/>\${data.message || 'No message provided'}</p>\`
+          `New Support Request from ${email}`,
+          `<p><b>From:</b> ${email}</p><p><b>Message:</b><br/>${data.message || 'No message provided'}</p>`
         );
         return response(200, { success: true });
       }
@@ -79,7 +79,7 @@ exports.handler = async (event) => {
         }));
 
         const subject = data.action === 'reset' ? "NQR Password Reset Code" : "NQR Account Verification Code";
-        const emailBody = \`<p>Your verification code is: <strong>\${otp}</strong></p><p>This code will expire in 10 minutes.</p>\`;
+        const emailBody = `<p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`;
         
         await sendSESEmail(email, subject, emailBody);
         return response(200, { success: true });
@@ -130,7 +130,7 @@ exports.handler = async (event) => {
         return response(403, { error: "The login email ID or password you entered is incorrect." });
       }
 
-      return response(200, { success: true, user: { name: \`\${userResult.Item.firstName} \${userResult.Item.lastName}\`.trim() } });
+      return response(200, { success: true, user: { name: `${userResult.Item.firstName} ${userResult.Item.lastName}`.trim() } });
     }
 
     if (path === "/auth/reset-password" && httpMethod === "POST") {
@@ -160,10 +160,36 @@ exports.handler = async (event) => {
     // ── QR MANAGEMENT ──
     if (path === "/qrs" && httpMethod === "POST") {
       const data = JSON.parse(body);
-      const qrId = \`nqr-\${Math.random().toString(36).substr(2, 9)}\`;
+      const email = (data.ownerEmail || 'anonymous@neverq.in').toLowerCase().trim();
+      
+      // 🛡️ AUTO-PROVISION TESTER: Ensure tester exists in USERS_TABLE so they show in Admin
+      if (email === 'tester@neverno.in') {
+        try {
+          const userCheck = await docClient.send(new GetCommand({ TableName: USERS_TABLE, Key: { email } }));
+          if (!userCheck.Item) {
+            await docClient.send(new PutCommand({
+              TableName: USERS_TABLE,
+              Item: {
+                email,
+                firstName: "Tester",
+                lastName: "Account",
+                password: "BYPASS_ACTIVE",
+                id: "tester-static-id",
+                createdAt: new Date().toISOString()
+              }
+            }));
+            console.log("Auto-provisioned Tester Account in DynamoDB.");
+          }
+        } catch (e) {
+          console.error("Provisioning error:", e);
+        }
+      }
+
+      const qrId = `nqr-${Math.random().toString(36).substr(2, 9)}`;
       const item = {
         id: qrId,
         ...data,
+        ownerEmail: email,
         scans: 0,
         status: 'active',
         createdAt: new Date().toISOString()
@@ -238,7 +264,7 @@ exports.handler = async (event) => {
 async function verifyTurnstile(token) {
   if (!token) return { success: false };
   const secret = process.env.TURNSTILE_SECRET || '1x0000000000000000000000000000000AA';
-  const data = \`secret=\${secret}&response=\${token}\`;
+  const data = `secret=${secret}&response=${token}`;
 
   return new Promise((resolve, reject) => {
     const req = https.request({

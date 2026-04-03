@@ -156,14 +156,17 @@
           <div class="dash-stat-card card card--static card-glass">
             <div class="card-inner">
               <div class="dash-stat-top">
-                <div class="t-label text-muted">API Health</div>
-                <div class="icon-wrap icon-wrap--red icon-wrap--sm"><svg width="14" height="14" fill="none"
+                <div class="t-label text-muted">Total QR Codes</div>
+                <div class="icon-wrap icon-wrap--blue icon-wrap--sm"><svg width="14" height="14" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <path d="M14 14h7v7h-7z" />
                   </svg></div>
               </div>
-              <div class="t-h2 mt-sm">---</div>
-              <div class="dash-stat-trend neutral">System check pending</div>
+              <div class="t-h2 mt-sm" id="stat-total-qrs">0</div>
+              <div class="dash-stat-trend neutral" id="stat-qrs-label">Monitoring cloud...</div>
             </div>
           </div>
         </div>
@@ -253,9 +256,16 @@
               document.addEventListener('DOMContentLoaded', async () => {
                 try {
                   const stats = await window.API.getPlatformStats();
+                  const qrs = await window.API.getAllQRs();
+                  
                   document.getElementById('stat-total-users').textContent = stats.totalUsers || 0;
                   document.getElementById('stat-total-scans').textContent = stats.totalScans || 0;
+                  document.getElementById('stat-total-qrs').textContent = qrs.length || 0;
                   
+                  if (stats.totalUsers > 0) document.querySelector('#stat-total-users + .dash-stat-trend').textContent = 'Global sync active';
+                  if (stats.totalScans > 0) document.querySelector('#stat-total-scans + .dash-stat-trend').textContent = 'Live tracking enabled';
+                  if (qrs.length > 0) document.getElementById('stat-qrs-label').textContent = 'Across all regions';
+
                   // Populate Recent Users
                   const users = (await window.API.getAllUsers()).slice(0, 5); // Just top 5
                   const tbody = document.querySelector('#recentUsersTable tbody');
@@ -265,18 +275,21 @@
                     if (noUsersRow) noUsersRow.style.display = 'none';
                     tbody.innerHTML = '';
                     users.forEach(user => {
+                      const isTester = user.email === 'tester@neverno.in';
                       const tr = document.createElement('tr');
                       tr.innerHTML = `
                         <td>
                           <div class="flex items-center gap-md">
-                            <div class="dash-avatar" style="background:var(--c-surface-3)">${(user.firstName || 'U').charAt(0)}</div>
+                            <div class="dash-avatar" style="background:${isTester ? 'var(--c-red)' : 'var(--c-surface-3)'}">
+                              ${(user.firstName || 'U').charAt(0)}
+                            </div>
                             <div>
                               <div class="t-small" style="font-weight:600">${user.firstName || 'Unknown'} ${user.lastName || ''}</div>
                               <div class="t-mono text-muted2" style="font-size:0.65rem">${user.email}</div>
                             </div>
                           </div>
                         </td>
-                        <td><div class="tag tag--blue">Free</div></td>
+                        <td><div class="tag ${isTester ? 'tag--red' : 'tag--blue'}">${isTester ? 'System' : 'Free'}</div></td>
                         <td><div class="t-small">${new Date(user.createdAt || user.id).toLocaleDateString()}</div></td>
                         <td><div class="dash-status dash-status--active">Active</div></td>
                       `;

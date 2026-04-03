@@ -141,19 +141,27 @@
       if (totalUsersEl) totalUsersEl.textContent = stats.totalUsers || 0;
 
       const users = await window.API.getAllUsers();
+      const allQrs = await window.API.getAllQRs();
       const tbody = document.querySelector('#userDirectoryTable tbody');
       const emptyRow = document.getElementById('emptyDirectoryRow');
 
       if (users && users.length > 0) {
         if (emptyRow) emptyRow.style.display = 'none';
         tbody.innerHTML = ''; // Clear existing
+        
         users.forEach(user => {
+          // Count QRs for this specific user
+          const qrCount = allQrs.filter(q => (q.ownerEmail || '').toLowerCase() === user.email.toLowerCase()).length;
+          const isTester = user.email === 'tester@neverno.in';
+          
           const tr = document.createElement('tr');
           tr.id = `user-${user.id}`;
           tr.innerHTML = `
             <td style="padding:16px">
               <div class="flex items-center gap-md">
-                <div class="dash-avatar" style="background:var(--c-blue-light)">${(user.firstName || 'U').charAt(0)}</div>
+                <div class="dash-avatar" style="background:${isTester ? 'var(--c-red)' : 'var(--c-blue-light)'}">
+                  ${(user.firstName || 'U').charAt(0)}
+                </div>
                 <div>
                   <div class="t-small" style="font-weight:600">${user.firstName || 'Unknown'} ${user.lastName || ''}</div>
                   <div class="t-mono text-muted2" style="font-size:0.65rem">ID: ${user.id}</div>
@@ -162,13 +170,15 @@
             </td>
             <td style="text-align:center">
               <div class="t-small">${user.email}</div>
-              <div class="tag tag--blue" style="font-size:0.6rem; margin-top:4px">Verified</div>
+              <div class="tag ${isTester ? 'tag--red' : 'tag--blue'}" style="font-size:0.6rem; margin-top:4px">
+                ${isTester ? 'System Account' : 'Verified User'}
+              </div>
             </td>
             <td style="text-align:center">
               <div class="t-small">${new Date(user.createdAt || user.id).toLocaleDateString()}</div>
             </td>
             <td style="text-align:center">
-              <div class="t-small" style="font-weight:600">0</div>
+              <div class="t-small" style="font-weight:600">${qrCount}</div>
             </td>
             <td style="text-align:center">
               <div class="dash-status dash-status--active">Active</div>
