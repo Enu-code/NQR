@@ -60,8 +60,7 @@
     </ul>
     <div class="nav__cta flex items-center gap-md hide-mobile">
       <div class="flex items-center gap-sm hide-mobile">
-        <div class="dash-avatar" style="width:32px;height:32px;font-size:0.75rem;background:var(--g-blue)">JD</div>
-        <div class="t-small" style="font-weight:600;color:var(--c-text)">Jane Doe</div>
+        <div id="navUserName" class="t-small" style="font-weight:600;color:var(--c-text)">User</div>
       </div>
       <a href="#" onclick="handleLogout()" class="btn btn--ghost btn--sm">Logout</a>
     </div>
@@ -71,6 +70,13 @@
 <script>
   function handleLogout() {
     window.API.logout();
+  }
+
+  // Update navbar username from logged-in session
+  const userName = sessionStorage.getItem('userName') || 'User Account';
+  const navUserNameEl = document.getElementById('navUserName');
+  if (navUserNameEl) {
+    navUserNameEl.textContent = userName;
   }
 </script>
 
