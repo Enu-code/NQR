@@ -41,6 +41,11 @@ exports.handler = async (event) => {
   const { httpMethod, path, pathParameters, body } = event;
   const resource = event.resource;
 
+  // 🛡️ GLOBAL CORS PREFLIGHT: Handle browser pre-checks
+  if (httpMethod === "OPTIONS") {
+    return response(200, { success: true }, event);
+  }
+
   try {
     // ── AUTH & COMMUNICATION Endpoints ──
     if (path === "/auth/request-otp" && httpMethod === "POST") {
@@ -48,7 +53,7 @@ exports.handler = async (event) => {
       const email = data.email.toLowerCase().trim();
       
       if (!email.endsWith('@neverno.in') && data.type === 'OTP') {
-        return response(400, { error: "Access restricted to @neverno.in domains." });
+        return response(400, { error: "Access restricted to @neverno.in domains." }, event);
       }
 
       if (data.type === 'SUPPORT') {
@@ -58,7 +63,7 @@ exports.handler = async (event) => {
           `New Support Request from ${email}`,
           `<p><b>From:</b> ${email}</p><p><b>Message:</b><br/>${data.message || 'No message provided'}</p>`
         );
-        return response(200, { success: true });
+        return response(200, { success: true }, event);
       }
 
       if (data.type === 'OTP') {
@@ -66,7 +71,7 @@ exports.handler = async (event) => {
           // Check if user exists
           const userResult = await docClient.send(new GetCommand({ TableName: USERS_TABLE, Key: { email } }));
           if (!userResult.Item) {
-            return response(404, { error: "User not found." });
+            return response(404, { error: "User not found." }, event);
           }
         }
 
@@ -82,7 +87,7 @@ exports.handler = async (event) => {
         const emailBody = `<p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`;
         
         await sendSESEmail(email, subject, emailBody);
-        return response(200, { success: true });
+        return response(200, { success: true }, event);
       }
     }
 
@@ -93,13 +98,13 @@ exports.handler = async (event) => {
       // Verify OTP
       const otpResult = await docClient.send(new GetCommand({ TableName: OTPS_TABLE, Key: { email } }));
       if (!otpResult.Item || otpResult.Item.otp !== data.otp || otpResult.Item.expiration < Math.floor(Date.now() / 1000)) {
-        return response(400, { error: "Invalid or expired verification code." });
+        return response(400, { error: "Invalid or expired verification code." }, event);
       }
 
       // Check if user already exists
       const existingUser = await docClient.send(new GetCommand({ TableName: USERS_TABLE, Key: { email } }));
       if (existingUser.Item) {
-        return response(400, { error: "User already exists." });
+        return response(400, { error: "User already exists." }, event);
       }
 
       const sanitized = {
@@ -117,7 +122,7 @@ exports.handler = async (event) => {
       // Cleanup OTP
       await docClient.send(new DeleteCommand({ TableName: OTPS_TABLE, Key: { email } }));
 
-      return response(200, { success: true });
+      return response(200, { success: true }, event);
     }
 
     if (path === "/auth/login" && httpMethod === "POST") {
@@ -127,10 +132,10 @@ exports.handler = async (event) => {
       const userResult = await docClient.send(new GetCommand({ TableName: USERS_TABLE, Key: { email } }));
       
       if (!userResult.Item || userResult.Item.password !== hashPassword(data.password)) {
-        return response(403, { error: "The login email ID or password you entered is incorrect." });
+        return response(403, { error: "The login email ID or password you entered is incorrect." }, event);
       }
 
-      return response(200, { success: true, user: { name: `${userResult.Item.firstName} ${userResult.Item.lastName}`.trim() } });
+      return response(200, { success: true, user: { name: `${userResult.Item.firstName} ${userResult.Item.lastName}`.trim() } }, event);
     }
 
     if (path === "/auth/reset-password" && httpMethod === "POST") {
@@ -140,7 +145,7 @@ exports.handler = async (event) => {
       // Verify OTP
       const otpResult = await docClient.send(new GetCommand({ TableName: OTPS_TABLE, Key: { email } }));
       if (!otpResult.Item || otpResult.Item.otp !== data.otp || otpResult.Item.expiration < Math.floor(Date.now() / 1000)) {
-        return response(400, { error: "Invalid or expired verification code." });
+        return response(400, { error: "Invalid or expired verification code." }, event);
       }
 
       // Update password
@@ -154,7 +159,7 @@ exports.handler = async (event) => {
       // Cleanup OTP
       await docClient.send(new DeleteCommand({ TableName: OTPS_TABLE, Key: { email } }));
 
-      return response(200, { success: true });
+      return response(200, { success: true }, event);
     }
 
     // ── QR MANAGEMENT ──
@@ -195,7 +200,7 @@ exports.handler = async (event) => {
         createdAt: new Date().toISOString()
       };
       await docClient.send(new PutCommand({ TableName: QRS_TABLE, Item: item }));
-      return response(200, item);
+      return response(200, item, event);
     }
 
     if (path === "/qrs" && httpMethod === "GET") {
@@ -205,7 +210,7 @@ exports.handler = async (event) => {
         FilterExpression: "ownerEmail = :e",
         ExpressionAttributeValues: { ":e": ownerEmail }
       }));
-      return response(200, result.Items);
+      return response(200, result.Items, event);
     }
 
     // ── REDIRECTOR (Scan Tracking & Security) ──
@@ -214,7 +219,7 @@ exports.handler = async (event) => {
       const pinProvided = event.queryStringParameters?.pin || null;
       
       const result = await docClient.send(new GetCommand({ TableName: QRS_TABLE, Key: { id: qrId } }));
-      if (!result.Item) return response(404, { error: "QR not found" });
+      if (!result.Item) return response(404, { error: "QR not found" }, event);
 
       const item = result.Item;
       const createdAt = new Date(item.createdAt).getTime();
@@ -238,7 +243,7 @@ exports.handler = async (event) => {
             <p style="color:rgba(255,255,255,0.6);">This QR code was set to expire and is no longer active.</p>
             <a href="https://neverq.in" style="margin-top:20px;display:inline-block;color:#D90429;text-decoration:none;font-weight:bold;">Create your own NQR &rarr;</a>
           </div>
-        `);
+        `, event);
       }
 
       // 2. Check Password (PIN)
@@ -268,7 +273,7 @@ exports.handler = async (event) => {
                }
              </script>
           </div>
-        `);
+        `, event);
       }
 
       // 3. Success: Increment Scan Count and Redirect
@@ -296,24 +301,24 @@ exports.handler = async (event) => {
         totalUsers: users.Count,
         totalQrs: qrs.Items.length,
         totalScans: totalScans
-      });
+      }, event);
     }
 
     if (path === "/admin/users" && httpMethod === "GET") {
       const result = await docClient.send(new ScanCommand({ TableName: USERS_TABLE }));
-      return response(200, result.Items);
+      return response(200, result.Items, event);
     }
 
     if (path === "/admin/qrs" && httpMethod === "GET") {
       const result = await docClient.send(new ScanCommand({ TableName: QRS_TABLE }));
-      return response(200, result.Items);
+      return response(200, result.Items, event);
     }
 
-    return response(404, { error: "Not Found" });
+    return response(404, { error: "Not Found" }, event);
 
   } catch (err) {
     console.error(err);
-    return response(500, { error: err.message });
+    return response(500, { error: err.message }, event);
   }
 };
 
@@ -345,14 +350,18 @@ async function verifyTurnstile(token) {
   });
 }
 
-function response(statusCode, body) {
-  const origin = process.env.ALLOWED_ORIGIN || "*"; 
+function response(statusCode, body, event = null) {
+  // 🛡️ DYNAMIC ORIGIN: Echo back the requesting origin (important for null origins like file:///)
+  const requestOrigin = event?.headers?.origin || event?.headers?.Origin || "*";
+  
   return {
     statusCode,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+      "Access-Control-Allow-Origin": requestOrigin,
+      "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PUT,DELETE",
+      "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With",
+      "Access-Control-Allow-Credentials": "true",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
       "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
@@ -361,14 +370,15 @@ function response(statusCode, body) {
   };
 }
 
-function responseHTML(statusCode, html) {
-  const origin = process.env.ALLOWED_ORIGIN || "*"; 
+function responseHTML(statusCode, html, event = null) {
+  const requestOrigin = event?.headers?.origin || event?.headers?.Origin || "*";
   return {
     statusCode,
     headers: {
       "Content-Type": "text/html",
-      "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
+      "Access-Control-Allow-Origin": requestOrigin,
+      "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+      "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
     },
     body: `
       <!DOCTYPE html>

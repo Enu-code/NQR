@@ -121,14 +121,6 @@
               </div>
               <label class="switch"><input type="checkbox" checked/><span class="switch-slider"></span></label>
             </div>
-            <hr class="divider" style="margin:var(--sp-md) 0"/>
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="t-h4" style="font-size:0.9rem">Scan Analytics</div>
-                <div class="t-small text-muted mt-xs">Track scans, locations, and devices.</div>
-              </div>
-              <label class="switch"><input type="checkbox" checked/><span class="switch-slider"></span></label>
-            </div>
           </div>
         </div>
       </div>
@@ -176,38 +168,37 @@
           <button class="btn btn--secondary mt-md" id="browseFilesBtn">Browse Files</button>
         </div>
 
-        <div class="gen-options card mt-lg card--static">
-          <div class="card-inner">
-            <!-- Password Protect -->
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="t-h4" style="font-size:0.9rem">Password Protect</div>
-                <div class="t-small text-muted mt-xs">Require a PIN to download file.</div>
-              </div>
-              <label class="switch"><input type="checkbox" id="passwordProtectToggle"/><span class="switch-slider"></span></label>
-            </div>
-            <!-- PIN input, shown only when toggle is ON -->
-            <div id="pinInputWrap" style="display:none; margin-top:12px">
-              <input type="text" class="form-input" id="filePinInput" placeholder="Set a 4-digit PIN (e.g. 1234)" maxlength="8" style="letter-spacing:0.2em"/>
-              <div class="t-small text-muted mt-xs">Scanners must enter this PIN to access the file.</div>
-            </div>
+      </div>
 
-            <hr class="divider" style="margin:var(--sp-md) 0"/>
-
-            <!-- Auto Expire -->
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="t-h4" style="font-size:0.9rem">Auto Expire</div>
-                <div class="t-small text-muted mt-xs">Delete file after a certain time/scans.</div>
-              </div>
-              <select class="form-input" id="fileExpireSelect" style="width:140px;padding:0.4rem;font-size:0.8rem">
-                <option value="never">Never</option>
-                <option value="1h">1 Hour</option>
-                <option value="24h">24 Hours</option>
-                <option value="7d">7 Days</option>
-                <option value="1scan">After 1 Scan</option>
-              </select>
+      <!-- 🛡️ SHARED SECURITY SETTINGS (Visible for Link & File) -->
+      <div id="sharedSecuritySettings" class="gen-options card mt-lg card--static" style="display:block">
+        <div class="card-inner">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="t-h4" style="font-size:0.9rem">Password Protect</div>
+              <div class="t-small text-muted mt-xs">Require a secure PIN to access content.</div>
             </div>
+            <label class="switch"><input type="checkbox" id="passwordProtectToggle"/><span class="switch-slider"></span></label>
+          </div>
+          <div id="pinInputWrap" style="display:none; margin-top:12px">
+            <input type="text" class="form-input" id="filePinInput" placeholder="Set a 4-8 digit PIN (e.g. 1234)" maxlength="8" style="letter-spacing:0.2em"/>
+            <div class="t-small text-muted mt-xs">Scanners must enter this PIN before the final redirect.</div>
+          </div>
+
+          <hr class="divider" style="margin:var(--sp-md) 0"/>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="t-h4" style="font-size:0.9rem">Auto Expire</div>
+              <div class="t-small text-muted mt-xs">Deactivate QR after a certain time/scans.</div>
+            </div>
+            <select class="form-input" id="fileExpireSelect" style="width:140px;padding:0.4rem;font-size:0.8rem">
+              <option value="never">Never</option>
+              <option value="1h">1 Hour</option>
+              <option value="24h">24 Hours</option>
+              <option value="7d">7 Days</option>
+              <option value="1scan">After 1 Scan</option>
+            </select>
           </div>
         </div>
       </div>
@@ -433,13 +424,55 @@
   }
 
   // ── Wire up vCard inputs to update currentContent live as user types ──
-  ['vcardFirstName','vcardLastName','vcardCompany','vcardTitle','vcardPhone','vcardEmail'].forEach(id => {
-    const el = document.getElementById(id);
+  // ── Tab Switching Logic ──
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      
+      // Update UI Toggles
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      tabContents.forEach(c => c.classList.remove('active'));
+      document.getElementById(target).classList.add('active');
+      
+      // Show/Hide Security Settings (Only for Link and File)
+      const securitySettings = document.getElementById('sharedSecuritySettings');
+      if (securitySettings) {
+        securitySettings.style.display = (target === 'tab-link' || target === 'tab-file') ? 'block' : 'none';
+      }
+
+      // Reset content based on tab
+      if (target === 'tab-link') currentContent = linkInput.value || 'https://neverq.in';
+      if (target === 'tab-text') currentContent = textInput.value || '';
+      if (target === 'tab-payment') currentContent = buildUPI(); 
+      if (target === 'tab-contact') currentContent = buildVCard();
+      
+      updatePreview(false);
+    });
+  });
+
+  // ── UPI BUILDER ──
+  function buildUPI() {
+    const payee = (payeeInput?.value || '').trim();
+    const amount = (amountInput?.value || '').trim();
+    const note = (noteInput?.value || '').trim();
+    if (!payee) return '';
+    let upi = `upi://pay?pa=${payee}&pn=NQR%20User&cu=INR`;
+    if (amount) upi += `&am=${amount}`;
+    if (note) upi += `&tn=${encodeURIComponent(note)}`;
+    return upi;
+  }
+
+  // Update inputs
+  [linkInput, textInput, payeeInput, amountInput, noteInput].forEach(el => {
     if (el) el.addEventListener('input', () => {
       const activeTab = document.querySelector('.tab-btn.active');
-      if (activeTab && activeTab.dataset.target === 'tab-contact') {
-        currentContent = buildVCard();
-      }
+      const target = activeTab ? activeTab.dataset.target : 'tab-link';
+      if (target === 'tab-link') currentContent = linkInput.value;
+      if (target === 'tab-text') currentContent = textInput.value;
+      if (target === 'tab-payment') currentContent = buildUPI();
+      updatePreview(false);
     });
   });
 

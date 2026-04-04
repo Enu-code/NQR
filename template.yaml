@@ -2,7 +2,25 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: NQR Production Backend - SAM Infrastructure
 
+Globals:
+  Api:
+    Cors:
+      AllowMethods: "'OPTIONS,GET,POST,PUT,DELETE'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With'"
+      AllowOrigin: "'*'"
+      MaxAge: "'600'"
+
 Resources:
+  NqrApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'OPTIONS,GET,POST,PUT,DELETE'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+
   NqrApiFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -28,11 +46,13 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
+            RestApiId: !Ref NqrApi
             Path: /{proxy+}
             Method: ANY
         ScanRedirect:
           Type: Api
           Properties:
+            RestApiId: !Ref NqrApi
             Path: /s/{qrId}
             Method: GET
 
@@ -78,4 +98,4 @@ Resources:
 Outputs:
   ApiUrl:
     Description: "NQR Production API URL"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+    Value: !Sub "https://${NqrApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"

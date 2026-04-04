@@ -121,15 +121,29 @@
     </a>
     <ul class="nav__links">
       <li><a href="app-generator.html" class="nav__link">Generator</a></li>
+      <li><a href="features.html" class="nav__link active">Features</a></li>
       <li><a href="usecases.html" class="nav__link">Solutions</a></li>
       <li><a href="security.html" class="nav__link">Security</a></li>
     </ul>
-    <div class="nav__cta hide-mobile">
+    <div class="nav__cta flex items-center gap-md hide-mobile">
       <a href="user-login.html" class="btn btn--ghost btn--sm">Sign In</a>
       <a href="user-login.html" class="btn btn--primary btn--sm">Get Started</a>
     </div>
+    <div class="nav__hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </div>
   </div>
 </nav>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobileNav">
+  <span class="mobile-nav__close" id="mobileClose">✕</span>
+  <a href="app-generator.html" class="mobile-nav__link">Generator</a>
+  <a href="features.html" class="mobile-nav__link active">Features</a>
+  <a href="usecases.html" class="mobile-nav__link">Solutions</a>
+  <a href="security.html" class="mobile-nav__link">Security</a>
+  <a href="user-login.html" class="btn btn--primary btn--lg" style="margin-top:1rem">Get Started Free</a>
+</div>
 
 <section class="feat-hero">
   <div class="container">
@@ -213,54 +227,68 @@
 </section>
 
 <footer class="footer">
-  <div class="container container--wide">
+  <div class="container">
     <div class="footer__grid">
       <div class="footer__brand">
         <a href="index.html" class="nav__logo">
           <div class="nav__logo-mark">
             <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
           </div>
-          <div class="nav__logo-text">NQR</div>
+          <div>
+            <div class="nav__logo-text">NQR</div>
+            <div class="nav__logo-powered">Powered by Neverno</div>
+          </div>
         </a>
-        <p>Building the future of secure, beautiful QR sharing. Powered by Neverno.</p>
+        <p class="mt-md">Smart QR sharing for modern businesses and teams. Secure, branded, and built for scale.</p>
+        <div class="footer__socials mt-md">
+          <a href="#" class="btn btn--ghost btn--icon" aria-label="Twitter">𝕏</a>
+          <a href="#" class="btn btn--ghost btn--icon" aria-label="LinkedIn">in</a>
+        </div>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Product</h4>
+      <div>
+        <div class="footer__col-title">Product</div>
         <ul class="footer__links">
-          <li><a href="app-generator.html" class="footer__link">Generator</a></li>
-          <li><a href="features.html" class="footer__link">Features</a></li>
+          <li><a href="app-generator.html" class="footer__link">QR Generator</a></li>
+          <li><a href="app-generator.html?tab=file" class="footer__link">File Transfer</a></li>
+          <li><a href="app-generator.html?tab=contact" class="footer__link">Contact QR</a></li>
+          <li><a href="admin-portal.html" class="footer__link">Admin Portal</a></li>
         </ul>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Solutions</h4>
+      <div>
+        <div class="footer__col-title">Solutions</div>
         <ul class="footer__links">
-          <li><a href="usecases.html" class="footer__link">Use Cases</a></li>
+          <li><a href="usecases.html#corporate" class="footer__link">Corporate</a></li>
+          <li><a href="usecases.html#events" class="footer__link">Events</a></li>
+          <li><a href="usecases.html#restaurants" class="footer__link">Restaurants</a></li>
+          <li><a href="usecases.html#sales" class="footer__link">Sales Teams</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Company</div>
+        <ul class="footer__links">
           <li><a href="security.html" class="footer__link">Security</a></li>
-          <li><a href="faq.html" class="footer__link">Help Center</a></li>
+          <li><a href="faq.html" class="footer__link">FAQ</a></li>
+          <li><a href="contact-support.html" class="footer__link">Contact</a></li>
         </ul>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Social</h4>
+      <div>
+        <div class="footer__col-title">Account</div>
         <ul class="footer__links">
-          <li><a href="#" class="footer__link">Twitter</a></li>
-          <li><a href="#" class="footer__link">LinkedIn</a></li>
-          <li><a href="#" class="footer__link">Instagram</a></li>
-        </ul>
-      </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Legal</h4>
-        <ul class="footer__links">
-          <li><a href="#" class="footer__link">Privacy</a></li>
-          <li><a href="#" class="footer__link">Terms</a></li>
-          <li><a href="#" class="footer__link">Security</a></li>
+          <li><a href="user-login.html" class="footer__link">Sign In</a></li>
+          <li><a href="user-login.html?signup" class="footer__link">Sign Up</a></li>
+          <li><a href="admin-portal.html" class="footer__link">Admin Login</a></li>
         </ul>
       </div>
     </div>
     <div class="footer__bottom">
-      <p>© 2026 NQR. All rights reserved by NEVERNO.</p>
+      <span>© 2026 NQR. All rights reserved by NEVERNO.</span>
       <div class="footer__powered">
         <div class="footer__powered-dot"></div>
-        <span>Distributed by Neverno Digital</span>
+        <span>Powered by Neverno</span>
+      </div>
+      <div style="display:flex;gap:1rem">
+        <a href="#" class="footer__link">Privacy</a>
+        <a href="#" class="footer__link">Terms</a>
       </div>
     </div>
   </div>
