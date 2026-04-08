@@ -20,10 +20,10 @@ tailwind.config = {
     extend: {
       colors: {
         "surface-variant": "#353534",
-        "on-primary-fixed-variant": "#334282",
+        "on-primary-fixed-variant": "#930018",
         "on-secondary": "#68000e",
         "secondary-fixed": "#ffdad7",
-        "on-primary-container": "#8b9ae0",
+        "on-primary-container": "#ffb4ab",
         "surface-container-highest": "#353534",
         "on-error-container": "#ffdad6",
         "on-error": "#690005",
@@ -31,19 +31,19 @@ tailwind.config = {
         "surface-dim": "#131313",
         "surface-container": "#201f1f",
         "tertiary": "#ffb787",
-        "on-primary": "#1b2b6a",
+        "on-primary": "#690005",
         "outline-variant": "#454650",
         "on-secondary-fixed-variant": "#930018",
         "secondary-fixed-dim": "#ffb3af",
         "on-background": "#e5e2e1",
         "background": "#131313",
-        "on-primary-fixed": "#001354",
+        "on-primary-fixed": "#410005",
         "surface": "#131313",
-        "surface-tint": "#b8c4ff",
+        "surface-tint": "#ffb4ab",
         "on-tertiary-container": "#d58e5d",
-        "inverse-primary": "#4b5a9b",
+        "inverse-primary": "#f8b2aa",
         "on-secondary-container": "#ffe7e5",
-        "primary-container": "#20306f",
+        "primary-container": "#D90429",
         "surface-container-low": "#1c1b1b",
         "surface-container-high": "#2a2a2a",
         "inverse-on-surface": "#313030",
@@ -55,14 +55,14 @@ tailwind.config = {
         "error": "#ffb4ab",
         "on-tertiary-fixed": "#311300",
         "on-tertiary-fixed-variant": "#6e390f",
-        "primary-fixed": "#dde1ff",
-        "primary": "#b8c4ff",
+        "primary-fixed": "#ffdad6",
+        "primary": "#D90429",
         "inverse-surface": "#e5e2e1",
         "outline": "#8f909b",
         "tertiary-fixed-dim": "#ffb787",
         "secondary": "#ffb3af",
         "on-surface-variant": "#c6c5d2",
-        "primary-fixed-dim": "#b8c4ff",
+        "primary-fixed-dim": "#ffb3af",
         "on-secondary-fixed": "#410005",
         "tertiary-fixed": "#ffdcc7",
         "surface-container-lowest": "#0e0e0e"
@@ -82,7 +82,7 @@ tailwind.config = {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 .editorial-gradient {
-    background: linear-gradient(135deg, #20306F 0%, #131313 100%);
+    background: linear-gradient(135deg, #080E22 0%, #05070A 100%);
 }
 .cta-gradient {
     background: linear-gradient(to right, #d90429, #68000e);
@@ -101,7 +101,7 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
 /* Enhanced Swipe Animation */
 .swipe-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(-120%);
-  background: linear-gradient(90deg, transparent 0%, rgba(32, 48, 111, 0.8) 40%, rgba(51, 66, 130, 1) 50%, rgba(32, 48, 111, 0.8) 60%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(217, 4, 41, 0.8) 40%, rgba(217, 4, 41, 1) 50%, rgba(217, 4, 41, 0.8) 60%, transparent 100%);
   z-index: 9999; pointer-events: none; backdrop-filter: blur(8px);
 }
 .swipe-overlay.is-active { animation: swipe 0.8s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
@@ -181,7 +181,7 @@ html, body { overflow-x: hidden; margin: 0; padding: 0; }
 </div>
 
 <div id="authError" style="color: #ffb4ab; background: rgba(147, 0, 10, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 24px; display: none; text-align: center; border: 1px solid rgba(147, 0, 10, 0.5);"></div>
-<div id="authSuccess" style="color: #b8c4ff; background: rgba(32, 48, 111, 0.4); padding: 12px; border-radius: 8px; margin-bottom: 24px; display: none; text-align: center; border: 1px solid rgba(32, 48, 111, 0.8);"></div>
+<div id="authSuccess" style="color: #ffdad6; background: rgba(217, 4, 41, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 24px; display: none; text-align: center; border: 1px solid rgba(217, 4, 41, 0.4);"></div>
 
 <!-- Form -->
 <form class="space-y-6" onsubmit="handleAuthSubmit(event, this)">

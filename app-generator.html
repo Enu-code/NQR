@@ -6,28 +6,131 @@
 <title>QR Generator — NQR</title>
 <link rel="stylesheet" href="styles.css"/>
 <link rel="stylesheet" href="generator.css"/>
-<style>
-  .logo-preview-box {
-    width: 64px;
-    height: 64px;
-    border: 2px dashed rgba(255,255,255,0.1);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background: rgba(255,255,255,0.03);
-  }
-  .logo-preview-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 4px;
-  }
-</style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script src="config.js"></script>
 <script src="backend.js"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#D90429",
+        "primary-container": "#410005",
+        "on-surface": "#e5e2e1",
+        "on-surface-variant": "#c6c5d2",
+        "surface": "#060810",
+        "surface-container": "#1a1c24",
+      },
+      fontFamily: {
+        "headline": ["Manrope"],
+        "body": ["Inter"],
+      },
+      borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "2xl": "1rem", "full": "9999px"},
+    },
+  },
+}
+</script>
+
+<style>
+  :root {
+    --brand-red: #D90429;
+    --navy-deep: #060810;
+  }
+
+  body {
+    background: var(--navy-deep);
+    color: #e5e2e1;
+    overflow-x: hidden;
+  }
+
+  /* ── Ambient Background ── */
+  .hero__glow {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1; pointer-events: none; overflow: hidden;
+  }
+  .hero__glow--1 {
+    position: absolute; top: -10%; left: -10%; width: 60%; height: 60%;
+    background: radial-gradient(circle, rgba(217, 4, 41, 0.12) 0%, transparent 70%);
+    filter: blur(80px); animation: pulse Glow1 12s infinite alternate;
+  }
+  .hero__glow--2 {
+    position: absolute; bottom: -10%; right: -10%; width: 50%; height: 50%;
+    background: radial-gradient(circle, rgba(147, 51, 234, 0.08) 0%, transparent 70%);
+    filter: blur(80px); animation: pulse Glow2 15s infinite alternate;
+  }
+  @keyframes Glow1 { 0% { transform: translate(0,0); } 100% { transform: translate(10%, 10%); } }
+  @keyframes Glow2 { 0% { transform: translate(0,0); } 100% { transform: translate(-15%, -10%); } }
+
+  /* ── Large Ghost Watermark ── */
+  .bg-watermark {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 40vw; font-weight: 900; color: rgba(255,255,255,0.025);
+    z-index: -1; pointer-events: none; user-select: none;
+    font-family: 'Manrope', sans-serif; letter-spacing: -0.05em;
+  }
+
+  /* ── Glass Panes ── */
+  .premium-glass {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  /* ── Premium Tabs ── */
+  .tab-trigger {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.4);
+    transition: all 0.3s;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-trigger:hover { color: #fff; }
+  .tab-trigger.active { color: var(--brand-red); border-bottom-color: var(--brand-red); background: rgba(217,4,41,0.05); }
+
+  /* ── Form Inputs ── */
+  .premium-input {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 12px !important;
+    color: #fff !important;
+    transition: all 0.3s !important;
+  }
+  .premium-input:focus {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(217, 4, 41, 0.4) !important;
+    box-shadow: 0 0 15px rgba(217, 4, 41, 0.15) !important;
+    outline: none !important;
+  }
+
+  /* ── CTA Button ── */
+  .btn-premium {
+    background: linear-gradient(135deg, #D90429 0%, #930018 100%);
+    box-shadow: 0 8px 30px rgba(217, 4, 41, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(217, 4, 41, 0.5);
+    filter: brightness(1.1);
+  }
+
+  /* ── GSAP Hidden state ── */
+  .gsap-reveal { opacity: 0; transform: translateY(20px); }
+
+</style>
 </head>
 <body class="gen-page">
 
@@ -38,79 +141,89 @@
   }
 </script>
 
-<!-- ═══════════════════════════════════════════
-     NAVIGATION (Simplified for Generator)
-════════════════════════════════════════════ -->
-<nav class="nav" id="mainNav">
-  <div class="nav__inner">
-    <a href="index.html" class="nav__logo">
-      <div class="nav__logo-mark">
-        <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
-      </div>
-      <div>
-        <div class="nav__logo-text">NQR</div>
-        <div class="nav__logo-powered">Powered by Neverno</div>
-      </div>
+<!-- Ambient Shell -->
+<div class="hero__glow">
+  <div class="hero__glow--1"></div>
+  <div class="hero__glow--2"></div>
+</div>
+<div class="bg-watermark">NQR</div>
+
+<!-- TopAppBar (Premium Restore) -->
+<header class="fixed top-0 w-full z-50 bg-[#060810]/80 backdrop-blur-xl flex justify-between items-center px-8 h-20 border-b border-white/5 gsap-reveal">
+  <div class="flex items-center gap-3">
+    <!-- Back Button -->
+    <a href="index.html" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/40 transition-all hover:-translate-x-1 active:scale-95 group">
+      <span class="material-symbols-outlined text-[14px] text-white/60 group-hover:text-white transition-colors">arrow_back</span>
+      <span class="font-headline text-[10px] font-bold tracking-widest uppercase text-white/60 group-hover:text-white transition-colors">Home</span>
     </a>
-    <ul class="nav__links">
-      <li><a href="app-generator.html" class="nav__link active">Generator</a></li>
-      <li><a href="features.html" class="nav__link">Features</a></li>
-      <li><a href="usecases.html" class="nav__link">Solutions</a></li>
-      <li><a href="security.html" class="nav__link">Security</a></li>
-    </ul>
-    <div class="nav__cta flex items-center gap-md hide-mobile">
-      <div class="flex items-center gap-sm hide-mobile">
-        <div id="navUserName" class="t-small" style="font-weight:600;color:var(--c-text)">User</div>
-      </div>
-      <a href="#" onclick="handleLogout()" class="btn btn--ghost btn--sm">Logout</a>
+    <div class="w-8 h-8 flex items-center justify-center shrink-0">
+      <img src="assets/logo.png" alt="NQR Logo" class="w-full h-full object-contain rounded-full border border-white/10"/>
     </div>
+    <span class="font-headline text-2xl font-black tracking-tighter text-[#e5e2e1]">NQR</span>
+    <span class="font-headline text-[10px] tracking-[0.2em] opacity-30 uppercase pt-1 hidden sm:inline-block">POWERED BY NEVERNO</span>
   </div>
-</nav>
+  <div class="flex items-center gap-6">
+    <div class="flex flex-col items-end mr-2">
+      <span id="navUserName" class="font-headline text-xs font-bold text-white tracking-widest uppercase">User Account</span>
+      <span class="text-[9px] text-white/30 tracking-[0.2em] uppercase">Premium Member</span>
+    </div>
+    <button onclick="window.API.logout()" class="p-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary transition-all group">
+      <span class="material-symbols-outlined text-xl">logout</span>
+    </button>
+  </div>
+</header>
 
 <script>
-  function handleLogout() {
-    window.API.logout();
-  }
-
   // Update navbar username from logged-in session
   const userName = sessionStorage.getItem('userName') || 'User Account';
   const navUserNameEl = document.getElementById('navUserName');
   if (navUserNameEl) {
     navUserNameEl.textContent = userName;
   }
+  
+  // GSAP Init
+  gsap.fromTo(".gsap-reveal", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power3.out" });
 </script>
 
 <!-- ═══════════════════════════════════════════
      GENERATOR WORKSPACE
 ════════════════════════════════════════════ -->
-<div class="gen-workspace">
+<div class="gen-workspace pt-24 px-6 md:px-12 flex flex-col lg:flex-row gap-8 max-w-[1440px] mx-auto min-h-screen">
   
   <!-- LEFT: Form Pane -->
-  <div class="gen-pane gen-pane--left">
-    <div class="gen-header">
-      <h1 class="t-h2">Create new QR</h1>
-      <p class="t-small text-muted mt-xs">Select a type and enter your content.</p>
+  <div class="flex-1 premium-glass rounded-3xl p-8 gsap-reveal">
+    <div class="mb-8 space-y-2">
+      <div class="flex items-center gap-2 text-primary">
+        <span class="material-symbols-outlined text-lg">add_circle</span>
+        <span class="font-headline text-[10px] font-bold tracking-[0.2em] uppercase">Engine</span>
+      </div>
+      <h1 class="font-headline text-4xl font-extrabold tracking-tight">Create new QR</h1>
+      <p class="font-body text-white/50 text-sm">Select an engine type and configure your link.</p>
     </div>
 
-    <!-- Type Selector Tabs -->
-    <div class="tabs mt-lg" id="typeTabs">
-      <button class="tab-btn active" data-target="tab-link">🔗 Link</button>
-      <button class="tab-btn" data-target="tab-contact">👤 Contact</button>
-      <button class="tab-btn" data-target="tab-file">📁 File</button>
-      <button class="tab-btn" data-target="tab-text">📝 Text</button>
-      <button class="tab-btn" data-target="tab-payment">💳 Payment</button>
+    <!-- Type Selector (Modern Scrollable) -->
+    <div class="flex border-b border-white/5 mb-8 overflow-x-auto no-scrollbar" id="typeTabs">
+      <button class="tab-trigger active" data-target="tab-link">🔗 Link</button>
+      <button class="tab-trigger" data-target="tab-contact">👤 Contact</button>
+      <button class="tab-trigger" data-target="tab-file">📁 File</button>
+      <button class="tab-trigger" data-target="tab-text">📝 Text</button>
+      <button class="tab-trigger" data-target="tab-payment">💳 Payment</button>
+      <button class="tab-trigger" data-target="tab-bulk">📦 Bulk</button>
+      <button class="tab-trigger" data-target="tab-settings">⚙️ Settings</button>
     </div>
 
     <div class="gen-forms mt-xl">
       <!-- LINK TAB -->
       <div class="gen-form-content active" id="tab-link">
-        <div class="form-group">
-          <label class="form-label">Destination URL</label>
-          <input type="url" class="form-input" id="linkInput" placeholder="https://example.com" value="https://neverq.in"/>
-        </div>
-        <div class="form-group mt-md">
-          <label class="form-label">QR Name (Internal)</label>
-          <input type="text" class="form-input" id="linkName" placeholder="e.g. Campaign Fall 2026"/>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Destination URL</label>
+            <input type="url" class="w-full premium-input px-4 py-4" id="linkInput" placeholder="https://example.com" value="https://neverq.in"/>
+          </div>
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">QR Name (Internal)</label>
+            <input type="text" class="w-full premium-input px-4 py-4" id="linkName" placeholder="e.g. Campaign Fall 2026"/>
+          </div>
         </div>
         <div class="gen-options card mt-lg card--static">
           <div class="card-inner">
@@ -127,52 +240,56 @@
 
       <!-- CONTACT TAB -->
       <div class="gen-form-content" id="tab-contact">
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:var(--sp-md)">
-          <div class="form-group">
-            <label class="form-label">First Name</label>
-            <input type="text" class="form-input" id="vcardFirstName" placeholder="Eshaan"/>
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">First Name</label>
+            <input type="text" class="w-full premium-input px-4 py-4" id="vcardFirstName" placeholder="Eshaan"/>
           </div>
-          <div class="form-group">
-            <label class="form-label">Last Name</label>
-            <input type="text" class="form-input" id="vcardLastName" placeholder="Roy"/>
-          </div>
-        </div>
-        <div class="form-group mt-md">
-          <label class="form-label">Company &amp; Designation</label>
-          <div class="flex gap-sm">
-            <input type="text" class="form-input" id="vcardCompany" placeholder="Company Name"/>
-            <input type="text" class="form-input" id="vcardTitle" placeholder="Job Title"/>
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Last Name</label>
+            <input type="text" class="w-full premium-input px-4 py-4" id="vcardLastName" placeholder="Roy"/>
           </div>
         </div>
-        <div class="form-group mt-md">
-          <label class="form-label">Phone &amp; Email</label>
-          <div class="flex gap-sm">
-            <input type="tel" class="form-input" id="vcardPhone" placeholder="+91 98765 43210"/>
-            <input type="email" class="form-input" id="vcardEmail" placeholder="eshaan@example.in"/>
+        <div class="grid grid-cols-2 gap-6 mt-6">
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Company</label>
+            <input type="text" class="w-full premium-input px-4 py-4" id="vcardCompany" placeholder="Company Name"/>
+          </div>
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Job Title</label>
+            <input type="text" class="w-full premium-input px-4 py-4" id="vcardTitle" placeholder="Job Title"/>
           </div>
         </div>
-
+        <div class="grid grid-cols-2 gap-6 mt-6">
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Phone</label>
+            <input type="tel" class="w-full premium-input px-4 py-4" id="vcardPhone" placeholder="+91 98765 43210"/>
+          </div>
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Email</label>
+            <input type="email" class="w-full premium-input px-4 py-4" id="vcardEmail" placeholder="eshaan@example.in"/>
+          </div>
+        </div>
       </div>
 
       <!-- FILE TAB -->
       <div class="gen-form-content" id="tab-file">
-        <!-- Hidden real file input -->
         <input type="file" id="filePickerInput" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.zip,.mp4" style="display:none"/>
-
-        <div class="gen-upload-area" id="fileDropZone">
-          <div class="icon-wrap icon-wrap--blue icon-wrap--lg mb-md" style="margin-left:auto;margin-right:auto">
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="p-12 border-2 border-dashed border-white/10 rounded-2xl text-center bg-white/5 hover:bg-white/10 hover:border-primary/50 transition-all cursor-pointer group" id="fileDropZone">
+          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-3xl text-primary">upload_file</span>
           </div>
-          <div class="t-h4" id="fileDropLabel">Drag &amp; Drop file to securely share</div>
-          <p class="t-small text-muted mt-xs" id="fileDropSub">Supports PDF, Images, DOCX, ZIP up to 5GB.</p>
-          <button class="btn btn--secondary mt-md" id="browseFilesBtn">Browse Files</button>
+          <h4 class="font-headline text-lg font-bold mb-2" id="fileDropLabel">Drag & Drop secure files</h4>
+          <p class="font-body text-white/40 text-sm mb-6" id="fileDropSub">PDF, Images, DOCX, ZIP (Up to 5GB)</p>
+          <button class="btn-premium px-8 py-3 rounded-xl font-headline font-bold text-sm" id="browseFilesBtn">Browse Files</button>
         </div>
-
       </div>
 
       <!-- 🛡️ SHARED SECURITY SETTINGS (Visible for Link & File) -->
       <div id="sharedSecuritySettings" class="gen-options card mt-lg card--static" style="display:block">
         <div class="card-inner">
+
+          <!-- Password -->
           <div class="flex items-center justify-between">
             <div>
               <div class="t-h4" style="font-size:0.9rem">Password Protect</div>
@@ -180,13 +297,14 @@
             </div>
             <label class="switch"><input type="checkbox" id="passwordProtectToggle"/><span class="switch-slider"></span></label>
           </div>
-          <div id="pinInputWrap" style="display:none; margin-top:12px">
+          <div id="pinInputWrap" style="display:none;margin-top:12px">
             <input type="text" class="form-input" id="filePinInput" placeholder="Set a 4-8 digit PIN (e.g. 1234)" maxlength="8" style="letter-spacing:0.2em"/>
             <div class="t-small text-muted mt-xs">Scanners must enter this PIN before the final redirect.</div>
           </div>
 
           <hr class="divider" style="margin:var(--sp-md) 0"/>
 
+          <!-- Auto Expire -->
           <div class="flex items-center justify-between">
             <div>
               <div class="t-h4" style="font-size:0.9rem">Auto Expire</div>
@@ -200,107 +318,315 @@
               <option value="1scan">After 1 Scan</option>
             </select>
           </div>
+
+          <hr class="divider" style="margin:var(--sp-md) 0"/>
+
+          <!-- Lead Capture Gate -->
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="t-h4" style="font-size:0.9rem">🎯 Lead Capture Gate</div>
+              <div class="t-small text-muted mt-xs">Show a form before redirecting. Leads saved to dashboard.</div>
+            </div>
+            <label class="switch"><input type="checkbox" id="leadCaptureToggle"/><span class="switch-slider"></span></label>
+          </div>
+          <div id="leadCaptureWrap" style="display:none;margin-top:12px">
+            <input type="text" class="form-input" id="leadHeading" placeholder="e.g. Tell us about yourself" style="margin-bottom:0.5rem"/>
+            <div class="t-small text-muted mb-xs">Fields to collect:</div>
+            <div class="lead-field-checks">
+              <label><input type="checkbox" id="lcName"  checked> Name</label>
+              <label><input type="checkbox" id="lcEmail" checked> Email</label>
+              <label><input type="checkbox" id="lcPhone"> Phone</label>
+            </div>
+          </div>
+
         </div>
       </div>
 
       <!-- TEXT TAB -->
       <div class="gen-form-content" id="tab-text">
-        <div class="form-group">
-          <label class="form-label">Message / Note</label>
-          <textarea class="form-input" id="textInput" placeholder="Enter any text here to show on scan..."></textarea>
-          <div class="t-small text-muted2 text-right mt-xs">Max 500 characters</div>
-        </div>
-        <div class="form-group mt-md">
-           <label class="form-label">QR Name (Internal)</label>
-           <input type="text" class="form-input" id="textName" placeholder="e.g. Personal Note"/>
+        <div class="space-y-6">
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Message / Note</label>
+            <textarea class="w-full premium-input px-4 py-4 min-h-[120px]" id="textInput" placeholder="Enter any text here to show on scan..."></textarea>
+            <div class="text-[9px] text-white/30 uppercase tracking-widest text-right">Max 500 characters</div>
+          </div>
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">QR Name (Internal)</label>
+            <input type="text" class="w-full premium-input px-4 py-4" id="textName" placeholder="e.g. Personal Note"/>
+          </div>
         </div>
       </div>
 
       <!-- PAYMENT TAB -->
       <div class="gen-form-content" id="tab-payment">
-        <div class="form-group mb-md">
-          <label class="form-label">Payee UPI / Address</label>
-          <input type="text" class="form-input" id="payeeInput" placeholder="yourname@upi or 98765-43210@ybl"/>
-          <div class="t-small text-muted mt-xs">Enter a valid UPI ID (e.g. name@okicici, mobile@ybl). The QR will open a UPI payment request when scanned.</div>
-        </div>
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:var(--sp-md)">
-          <div class="form-group">
-            <label class="form-label">Amount (₹)</label>
-            <input type="number" class="form-input" id="amountInput" placeholder="0.00" min="0" step="0.01"/>
+      <!-- PAYMENT TAB -->
+      <div class="gen-form-content" id="tab-payment">
+        <div class="space-y-6">
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Payee UPI / Address</label>
+            <input type="text" class="w-full premium-input px-4 py-4" id="payeeInput" placeholder="yourname@upi or 98765-43210@ybl"/>
+            <p class="text-[10px] text-white/30 leading-relaxed">Enter a valid UPI ID. The QR will open a UPI payment request when scanned.</p>
           </div>
-          <div class="form-group">
-            <label class="form-label">Currency</label>
-            <select class="form-input" id="currencyInput">
-              <option value="INR">INR (UPI)</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="BTC">BTC</option>
-            </select>
+          <div class="grid grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Amount (₹)</label>
+              <input type="number" class="w-full premium-input px-4 py-4" id="amountInput" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+            <div class="space-y-2">
+              <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Currency</label>
+              <select class="w-full premium-input px-4 py-4 bg-[#1a1c24] border-none" id="currencyInput">
+                <option value="INR">INR (UPI)</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="BTC">BTC</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Payment Note</label>
+              <input type="text" class="w-full premium-input px-4 py-4" id="noteInput" placeholder="e.g. Invoice #1024"/>
+            </div>
+            <div class="space-y-2">
+              <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">QR Name (Internal)</label>
+              <input type="text" class="w-full premium-input px-4 py-4" id="paymentName" placeholder="e.g. Rent Payment"/>
+            </div>
           </div>
         </div>
-        <div class="form-group mt-md">
-          <label class="form-label">Payment Note / Reference</label>
-          <input type="text" class="form-input" id="noteInput" placeholder="e.g. Invoice #1024"/>
+      </div>
+
+      <!-- BULK TAB -->
+      <div class="gen-form-content" id="tab-bulk">
+        <div id="bulkStep1" class="space-y-6">
+          <div class="space-y-2">
+            <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Upload CSV File</label>
+            <div class="p-12 border-2 border-dashed border-white/10 rounded-2xl text-center bg-white/5 hover:bg-white/10 hover:border-primary/50 transition-all cursor-pointer group" id="bulkCsvDropZone">
+              <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-3xl text-primary">data_object</span>
+              </div>
+              <h4 class="font-headline text-lg font-bold mb-2" id="bulkCsvLabel">Drag & Drop .csv here</h4>
+              <p class="font-body text-white/40 text-sm mb-6">Max 1,000 rows. Columns needed: <b class="text-white">name</b>, <b class="text-white">url</b></p>
+              <button class="btn-premium px-8 py-3 rounded-xl font-headline font-bold text-sm" type="button" onclick="document.getElementById('bulkCsvInput').click()">Browse CSV</button>
+              <input type="file" id="bulkCsvInput" accept=".csv" style="display:none"/>
+            </div>
+          </div>
+          
+          <div id="bulkPreviewWrap" style="display:none;" class="space-y-4">
+            <div class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">CSV Preview (Top 5 rows)</div>
+            <div class="premium-glass rounded-2xl overflow-hidden border border-white/5">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-white/5 border-b border-white/5">
+                  <tr>
+                    <th class="px-4 py-3 font-bold uppercase tracking-widest opacity-40">Name</th>
+                    <th class="px-4 py-3 font-bold uppercase tracking-widest opacity-40">URL</th>
+                  </tr>
+                </thead>
+                <tbody id="bulkPreviewBody" class="divide-y divide-white/5 font-body"></tbody>
+              </table>
+            </div>
+            <button class="w-full btn-premium py-4 rounded-xl font-headline font-bold mt-4" id="startBulkBtn">🚀 Generate Bulk ZIP</button>
+          </div>
         </div>
-        <div class="form-group mt-md">
-           <label class="form-label">QR Name (Internal)</label>
-           <input type="text" class="form-input" id="paymentName" placeholder="e.g. Rent Payment"/>
+
+        <div id="bulkStep2" style="display:none;" class="space-y-6 text-center py-12">
+          <h4 class="font-headline text-2xl font-bold">Generating Engine...</h4>
+          <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+            <div id="bulkProgressBar" class="h-full bg-primary transition-all duration-300" style="width:0%"></div>
+          </div>
+          <div class="flex justify-between font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">
+            <span id="bulkProgressLabel">0 / 0</span>
+            <span id="bulkProgressPct">0%</span>
+          </div>
+          <button class="btn-premium px-12 py-4 rounded-xl font-headline font-bold text-lg" id="downloadBulkZipBtn" style="display:none">⬇️ Download ZIP</button>
+        </div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div class="gen-form-content" id="tab-settings">
+        <div class="space-y-8">
+          <!-- 📂 MY QR CODES -->
+          <div class="premium-glass rounded-3xl p-6 border border-white/5">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary">folder_managed</span>
+                <span class="font-headline text-lg font-bold uppercase tracking-tight">Active Engines</span>
+              </div>
+              <button class="px-4 py-1.5 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 text-[10px] font-bold uppercase tracking-widest transition-all" onclick="loadHistory()">Refresh</button>
+            </div>
+            
+            <div class="overflow-x-auto rounded-xl border border-white/5">
+              <table class="w-full text-left text-xs min-w-[600px]">
+                <thead class="bg-white/5 border-b border-white/5">
+                  <tr>
+                    <th class="px-6 py-4 font-bold uppercase tracking-widest opacity-40">Alias / Origin</th>
+                    <th class="px-6 py-4 font-bold uppercase tracking-widest opacity-40">Type</th>
+                    <th class="px-6 py-4 font-bold uppercase tracking-widest opacity-40">Short URL</th>
+                    <th class="px-6 py-4 font-bold uppercase tracking-widest opacity-40 text-center">Control</th>
+                  </tr>
+                </thead>
+                <tbody id="historyTableBody" class="divide-y divide-white/2">
+                  <tr class="opacity-30">
+                    <td colspan="4" class="px-6 py-12 text-center">
+                      <div class="flex flex-col items-center gap-2">
+                        <span class="material-symbols-outlined text-4xl">history</span>
+                        <span class="font-headline text-[10px] uppercase tracking-[0.2em]">Vault is empty</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 🌐 BRAND DOMAIN -->
+          <div class="premium-glass rounded-3xl p-8 border border-white/5 space-y-6">
+            <div class="space-y-1">
+              <h4 class="font-headline text-lg font-bold text-white uppercase tracking-tight">Cloud Infrastructure</h4>
+              <p class="font-body text-xs text-white/40">Select how your branded short links are deployed.</p>
+            </div>
+            
+            <div class="space-y-2">
+              <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/30">Subdomain Deployment Type</label>
+              <div class="grid grid-cols-2 gap-2 bg-white/5 p-1 rounded-xl">
+                <button id="btnManagedType" class="py-3 rounded-lg font-headline text-[10px] uppercase font-heavy tracking-widest transition-all active" onclick="setSubdomainType('managed')">Managed (Instant)</button>
+                <button id="btnCustomType" class="py-3 rounded-lg font-headline text-[10px] uppercase font-heavy tracking-widest opacity-40 hover:opacity-100 transition-all" onclick="setSubdomainType('custom')">Custom (CNAME)</button>
+              </div>
+            </div>
+
+            <div id="managedSubdomainGroup" class="space-y-3">
+              <div class="space-y-2">
+                <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/30">Subdomain Prefix</label>
+                <div class="flex items-center gap-2">
+                  <input type="text" class="flex-1 premium-input px-4 py-4" id="managedSubdomainInput" placeholder="mybrand"/>
+                  <span class="font-headline text-lg opacity-20 ">.neverq.in</span>
+                </div>
+              </div>
+            </div>
+
+            <div id="customDomainGroup" style="display:none" class="space-y-4">
+              <div class="space-y-2">
+                <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/30">Custom Hostname</label>
+                <input type="text" class="w-full premium-input px-4 py-4" id="customDomainInput" placeholder="go.yourcompany.com"/>
+              </div>
+              <div id="dnsTableWrap" style="display:none" class="p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-2">
+                <p class="font-headline text-[9px] uppercase tracking-widest text-primary font-bold">DNS Configuration required</p>
+                <div class="grid grid-cols-3 gap-2 text-[10px] opacity-60">
+                  <div class="col-span-1 border-r border-white/10">TYPE: CNAME</div>
+                  <div class="col-span-1 border-r border-white/10">HOST: <span id="dnsHost">@</span></div>
+                  <div class="col-span-1 uppercase">VALUE: neverq.in</div>
+                  <!-- CUSTOMIZATION PANEL -->
+    <div class="mt-12 gsap-reveal">
+      <h3 class="font-headline text-lg font-bold mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">palette</span>
+        Branding & Style
+      </h3>
+      
+      <div class="premium-glass rounded-3xl p-8 border border-white/5 space-y-8">
+        <!-- Colors -->
+        <div class="grid grid-cols-3 gap-6">
+          <div class="flex flex-col items-center gap-3">
+             <input type="color" id="qrColorInput" value="#0F1636" class="gen-color-swatch w-16 h-16 border-2 border-white/20"/>
+             <span class="font-headline text-[9px] uppercase tracking-widest opacity-40">Core Color</span>
+          </div>
+          <div class="flex flex-col items-center gap-3">
+             <input type="color" id="bgColorInput" value="#FFFFFF" class="gen-color-swatch w-16 h-16 border-2 border-white/20"/>
+             <span class="font-headline text-[9px] uppercase tracking-widest opacity-40">Background</span>
+          </div>
+          <div class="flex flex-col items-center gap-3">
+             <input type="color" id="eyeColorInput" value="#D90429" class="gen-color-swatch w-16 h-16 border-2 border-white/20"/>
+             <span class="font-headline text-[9px] uppercase tracking-widest opacity-40">Eye Color</span>
+          </div>
+        </div>
+        
+        <hr class="border-white/5"/>
+        
+        <!-- Logo -->
+        <div class="space-y-4">
+          <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Center Branding (Emblem)</label>
+          <div class="flex items-center gap-6">
+            <div id="logoPreview" class="w-20 h-20 rounded-2xl border-2 border-dashed border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
+               <span class="material-symbols-outlined text-white/10 text-3xl">image</span>
+            </div>
+            <div class="flex-1 space-y-4">
+              <p class="text-[10px] text-white/30 tracking-tight leading-relaxed">Square PNG or SVG recommended. Logo stays in the center of the QR code.</p>
+              <div class="flex gap-2">
+                <input type="file" id="logoInput" accept="image/png, image/jpeg, image/svg+xml" style="display:none"/>
+                <button class="px-6 py-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 text-[10px] font-bold uppercase transition-all" onclick="document.getElementById('logoInput').click()">Upload Emblem</button>
+                <button class="px-6 py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase transition-all hidden" id="removeLogoBtn">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <hr class="border-white/5"/>
+        
+        <!-- Dot Pattern -->
+        <div class="space-y-4">
+          <label class="font-headline text-[10px] font-bold uppercase tracking-widest text-white/40">Engine Pattern</label>
+          <div class="flex gap-4" id="dotPatternOptions">
+            <button class="gen-pattern-btn w-12 h-12 rounded-xl transition-all active" data-pattern="square"><div class="pt-square"></div></button>
+            <button class="gen-pattern-btn w-12 h-12 rounded-xl transition-all" data-pattern="dots"><div class="pt-dots"></div></button>
+            <button class="gen-pattern-btn w-12 h-12 rounded-xl transition-all" data-pattern="rounded"><div class="pt-rounded"></div></button>
+            <button class="gen-pattern-btn w-12 h-12 rounded-xl transition-all" data-pattern="classy-fluid"><div class="pt-fluid"></div></button>
+          </div>
+        </div>
+
+        <hr class="border-white/5"/>
+
+        <!-- CTA Frame -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <label class="font-headline text-sm font-bold opacity-80">Download CTA Frame</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="ctaFrameToggle" class="sr-only peer">
+              <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+          <div id="ctaFrameWrap" style="display:none" class="space-y-4 pt-2">
+            <div class="grid grid-cols-2 gap-4">
+              <input type="text" class="premium-input px-4 py-3 text-xs" id="ctaFrameText" placeholder="e.g. Scan for Menu"/>
+              <div class="flex items-center gap-3">
+                <input type="color" id="ctaFrameColor" value="#20306F" class="gen-color-swatch w-10 h-10 border border-white/20"/>
+                <span class="text-[9px] uppercase opacity-30 font-bold tracking-widest">Frame Color</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
         </div>
       </div>
     </div>
 
-    <!-- CUSTOMIZATION ACCORDION -->
-    <div class="gen-customization mt-2xl">
-      <h3 class="t-h4 mb-md">Branding & Style</h3>
-      
-      <div class="gen-style-panel card card--static">
+    <!-- SMART RULES (Link tab only) -->
+    <div class="gen-customization mt-xl" id="smartRulesSection" style="display:none">
+      <h3 class="t-h4 mb-md">🧠 Smart Multi-URL Rules</h3>
+      <div class="card card--static">
         <div class="card-inner">
-          <div class="form-group">
-            <label class="form-label">Colors</label>
-            <div class="flex items-center gap-md">
-              <div class="gen-color-picker">
-                <input type="color" id="qrColorInput" value="#0F1636" class="gen-color-swatch" style="border: 2px solid #fff;"/>
-                <div class="t-small mt-xs text-center">QR Color</div>
-              </div>
-              <div class="gen-color-picker">
-                <input type="color" id="bgColorInput" value="#FFFFFF" class="gen-color-swatch" style="border: 1px dashed var(--c-border-2);"/>
-                <div class="t-small mt-xs text-center">Background</div>
-              </div>
-              <div class="gen-color-picker">
-                <input type="color" id="eyeColorInput" value="#D90429" class="gen-color-swatch"/>
-                <div class="t-small mt-xs text-center">Eye Color</div>
-              </div>
+          <div class="t-small text-muted mb-sm">Redirect to different URLs based on conditions. Rules are evaluated in order — fall back to the main URL if none match.</div>
+          <div class="rules-list" id="rulesList"></div>
+          <button class="add-rule-btn" id="addRuleBtn" type="button">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Add Rule
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RETARGETING (Link tab only) -->
+    <div class="gen-customization mt-xl" id="retargetingSection" style="display:none">
+      <h3 class="t-h4 mb-md">📡 Marketing Retargeting</h3>
+      <div class="card card--static">
+        <div class="card-inner">
+          <div class="t-small text-muted mb-sm">Fire ad pixels when your QR is scanned. The script runs on an intermediate page before the redirect.</div>
+          <div class="retarget-grid">
+            <div class="form-group">
+              <label class="form-label">Facebook Pixel ID</label>
+              <input type="text" class="form-input" id="fbPixelId" placeholder="e.g. 123456789" />
             </div>
-          </div>
-          
-          <hr class="divider" style="margin:var(--sp-md) 0"/>
-          
-          <div class="form-group">
-            <label class="form-label">Logo Emblem</label>
-            <div class="flex items-center gap-md">
-              <div id="logoPreview" class="logo-preview-box">
-                <span class="text-muted" style="font-size:0.7rem">No Logo</span>
-              </div>
-              <div class="flex-1">
-                <div class="t-small text-muted mb-xs">Recommended: Square PNG/SVG</div>
-                <div class="flex items-center gap-sm">
-                  <input type="file" id="logoInput" accept="image/png, image/jpeg, image/svg+xml" style="display:none"/>
-                  <button class="btn btn--secondary btn--sm" onclick="document.getElementById('logoInput').click()">Upload Logo</button>
-                  <button class="btn btn--ghost btn--sm" id="removeLogoBtn" style="display:none">Remove</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <hr class="divider" style="margin:var(--sp-md) 0"/>
-          
-          <div class="form-group">
-            <label class="form-label">Dot Pattern</label>
-            <div class="flex gap-sm" id="dotPatternOptions">
-              <button class="gen-pattern-btn active" data-pattern="square"><div class="pt-square"></div></button>
-              <button class="gen-pattern-btn" data-pattern="dots"><div class="pt-dots"></div></button>
-              <button class="gen-pattern-btn" data-pattern="rounded"><div class="pt-rounded"></div></button>
-              <button class="gen-pattern-btn" data-pattern="classy-fluid"><div class="pt-fluid"></div></button>
+            <div class="form-group">
+              <label class="form-label">Google Tag Manager ID</label>
+              <input type="text" class="form-input" id="gtmId" placeholder="e.g. GTM-XXXXX" />
             </div>
           </div>
         </div>
@@ -308,54 +634,97 @@
     </div>
 
     <!-- Generate Action (Moved Inside) -->
-    <div class="mt-2xl flex justify-center">
-      <button class="btn btn--primary btn--lg anim-glow" id="generateBtn" style="min-width: 280px; padding: 1.2rem 2.5rem; font-size: 1.1rem; border-radius: 100px;">
-        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 14v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m14 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+    <!-- Generate Action (Premium Glow) -->
+    <div class="mt-12">
+      <button class="w-full btn-premium font-headline font-bold py-5 rounded-2xl flex items-center justify-center gap-3 text-lg" id="generateBtn">
+        <span class="material-symbols-outlined">qr_code_2</span>
         Generate & Preview
       </button>
     </div>
 
-  </div>
+  <!-- RIGHT: Sticky Preview Pane -->
+  <div class="lg:w-[450px] gsap-reveal">
+    <div class="sticky top-28 space-y-8">
+      <div class="premium-glass rounded-3xl p-8 border border-white/5 relative overflow-hidden group">
+        <div class="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="flex flex-col items-center gap-10">
+          <div class="section-badge px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black tracking-[0.2em] uppercase">Engine Preview</div>
+          
+          <div class="relative w-full aspect-square max-w-[280px] bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center transform group-hover:scale-[1.02] transition-transform duration-500">
+             <div id="livePreviewQr" class="w-full h-full flex items-center justify-center">
+                <!-- Live QR renders here -->
+                 <span class="material-symbols-outlined text-black/10 text-6xl">qr_code_2</span>
+             </div>
+             <div class="mt-4 font-headline text-[9px] text-black/40 font-bold tracking-widest uppercase" id="previewWatermark">Powered by Neverno</div>
+          </div>
 
-</div>
+          <div class="w-full space-y-4">
+             <div class="flex items-center justify-between px-2">
+                <span class="font-headline text-[10px] font-bold uppercase tracking-widest opacity-40">Live Sync</span>
+                <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+             </div>
+             <p class="text-xs text-white/30 text-center italic px-4">"High-fidelity rendering of your engine as you build."</p>
+          </div>
+        </div>
+      </div>
 
-<!-- ═══════════════════════════════════════════
-     IMMERSIVE MODAL
-     ════════════════════════════════════════════ -->
+      <!-- Quick Tips -->
+      <div class="premium-glass rounded-3xl p-6 border border-white/5 space-y-4">
+        <h5 class="font-headline text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+           <span class="material-symbols-outlined text-sm">lightbulb</span>
+           Pro Tip
+        </h5>
+<!-- IMMERSIVE MODAL -->
 <div class="qr-modal" id="qrModal">
   <div class="qr-modal__backdrop" id="modalBackdrop"></div>
-  <div class="qr-modal__content">
-    <button class="qr-modal__close" id="closeModal">✕</button>
+  <div class="qr-modal__content premium-glass">
+    <button class="qr-modal__close" id="closeModal">
+       <span class="material-symbols-outlined">close</span>
+    </button>
     
-    <div class="qr-modal__inner">
-      <div class="qr-modal__visual">
-        <div class="qr-modal__qr-card">
-          <div class="gen-qr-wrap flex items-center justify-center" id="modalQrWrap">
-            <!-- QR renders here -->
+    <div class="qr-modal__inner flex flex-col lg:flex-row gap-12 items-center">
+      <div class="qr-modal__visual flex-1">
+        <div class="relative group">
+          <!-- Main QR Card -->
+          <div class="relative z-10 bg-white rounded-3xl p-8 shadow-[0_30px_100px_rgba(0,0,0,0.6)] transform group-hover:scale-[1.03] transition-transform duration-700">
+            <div class="flex items-center justify-center p-2" id="modalQrWrap">
+              <!-- QR renders here -->
+            </div>
+            <div class="mt-4 text-center font-headline text-[10px] text-black/30 font-bold tracking-[0.2em] uppercase" id="uiWatermark">Powered By NEVERNO</div>
           </div>
-          <div class="qr-watermark" id="uiWatermark">Powered By NEVERNO</div>
-          <div class="qr-modal__glow"></div>
+          <!-- Card Glow -->
+          <div class="absolute -inset-4 bg-primary/20 blur-3xl rounded-full z-0 opacity-50 group-hover:opacity-100 transition-opacity"></div>
         </div>
       </div>
       
-      <div class="qr-modal__details">
-        <div class="section-badge">Ready to Share</div>
-        <h2 class="t-h1 mt-md">Your QR is ready</h2>
-        <p class="t-large text-muted mt-md">Beautifully crafted, secure, and brand-perfect. Download or share the link instantly.</p>
+      <div class="qr-modal__details flex-1 space-y-8">
+        <div class="space-y-4">
+          <div class="section-badge px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black tracking-[0.2em] uppercase w-fit">Engine Synchronized</div>
+          <h2 class="font-headline text-5xl font-black tracking-tighter">Your QR is ready.</h2>
+          <p class="font-body text-white/50 text-large leading-relaxed">Beautifully crafted, secure, and brand-perfect. Provisioned on Stockholm-1 nodes for instant global redirect.</p>
+        </div>
         
-        <div class="gen-actions mt-2xl w-full">
-          <button class="btn btn--primary btn--lg w-full justify-center" onclick="downloadQR('png')">Download PNG</button>
-          <div class="flex gap-sm mt-md">
-            <button class="btn btn--secondary flex-1 justify-center" onclick="downloadQR('svg')">Download SVG</button>
-            <button class="btn btn--ghost flex-1 justify-center" id="copyLinkBtn">Copy Link</button>
-          </div>
+        <div class="space-y-6">
+          <button class="w-full btn-premium py-5 rounded-2xl font-headline font-bold text-lg flex items-center justify-center gap-3" id="dlPngBtn" onclick="downloadQR('png')">
+             <span class="material-symbols-outlined">download</span>
+             Download PNG
+          </button>
           
-          <div class="gen-shortlink mt-xl">
-            <div class="t-small text-muted mb-xs">Dynamic Short Link</div>
-            <div class="flex gap-sm">
-              <input type="text" class="form-input" value="https://neverq.in/go/x78f2" readonly id="modalShortLink" style="font-family:var(--font-mono);font-size:0.9rem"/>
-              <button class="btn btn--ghost btn--icon" onclick="copyShortLink()"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
-            </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <button class="py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline text-[10px] font-bold uppercase transition-all" onclick="downloadQR('svg')">SVG</button>
+            <button class="py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline text-[10px] font-bold uppercase transition-all" onclick="downloadQR('pdf')">PDF</button>
+            <button class="py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline text-[10px] font-bold uppercase transition-all" onclick="downloadQR('eps')">EPS</button>
+            <button class="py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline text-[10px] font-bold uppercase transition-all" id="copyLinkBtn">Link</button>
+          </div>
+
+          <div class="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
+             <label class="font-headline text-[9px] font-bold uppercase tracking-widest text-white/30">Dynamic Short Link</label>
+             <div class="flex gap-2">
+                <input type="text" class="flex-1 bg-transparent border-none text-white font-mono text-sm focus:ring-0 p-0" value="https://neverq.in/go/x78f2" readonly id="modalShortLink" />
+                <button class="text-white/40 hover:text-white transition-colors" onclick="copyShortLink()">
+                   <span class="material-symbols-outlined text-lg">content_copy</span>
+                </button>
+             </div>
           </div>
         </div>
       </div>
@@ -388,7 +757,7 @@
   const closeModal = document.getElementById('closeModal');
   const modalBackdrop = document.getElementById('modalBackdrop');
   
-  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabBtns = document.querySelectorAll('.tab-trigger');
   const tabContents = document.querySelectorAll('.gen-form-content');
   const linkInput = document.getElementById('linkInput');
   const textInput = document.getElementById('textInput');
@@ -434,7 +803,8 @@
       btn.classList.add('active');
       
       tabContents.forEach(c => c.classList.remove('active'));
-      document.getElementById(target).classList.add('active');
+      const activeContent = document.getElementById(target);
+      if (activeContent) activeContent.classList.add('active');
       
       // Show/Hide Security Settings (Only for Link and File)
       const securitySettings = document.getElementById('sharedSecuritySettings');
@@ -526,7 +896,7 @@
     }
   }
 
-  // Password Protect toggle → show/hide PIN input
+  // Password Protect toggle
   if (pwToggle && pinWrap) {
     pwToggle.addEventListener('change', () => {
       pinWrap.style.display = pwToggle.checked ? 'block' : 'none';
@@ -537,72 +907,11 @@
     });
   }
 
+  // Show Smart Rules + Retargeting on initial load (Link tab is default)
+  document.getElementById('smartRulesSection').style.display  = 'block';
+  document.getElementById('retargetingSection').style.display = 'block';
 
-
-  async function openModal() {
-    const genBtn = document.getElementById('generateBtn');
-    const originalText = genBtn.innerHTML;
-    genBtn.innerHTML = '✨ Syncing to Cloud...';
-    genBtn.disabled = true;
-
-    try {
-      // 📝 Extract Metadata (Password, Expiry, Name)
-      const isPasswordProtected = document.getElementById('passwordProtectToggle')?.checked;
-      const pin = isPasswordProtected ? document.getElementById('filePinInput')?.value : null;
-      const expiry = document.getElementById('fileExpireSelect')?.value || 'never';
-      
-      const activeTab = document.querySelector('.tab-btn.active');
-      const tabTarget = activeTab ? activeTab.dataset.target : 'tab-link';
-      
-      // Dynamic name based on tab
-      let qrName = 'New QR';
-      if (tabTarget === 'tab-link') qrName = document.getElementById('linkName')?.value || 'Link';
-      if (tabTarget === 'tab-contact') qrName = (document.getElementById('vcardFirstName')?.value + ' ' + document.getElementById('vcardLastName')?.value).trim() || 'Contact';
-      if (tabTarget === 'tab-text') qrName = document.getElementById('textName')?.value || 'Text Note';
-      if (tabTarget === 'tab-file') qrName = 'Shared File';
-      if (tabTarget === 'tab-payment') qrName = document.getElementById('paymentName')?.value || 'Payment Request';
-
-      // ☁️ CLOUD SYNC: Save record in Admin Panel
-      const qrRecord = await window.API.saveQR({
-        url: currentContent,
-        name: qrName, 
-        options: {
-          ...currentOptions,
-          password: pin, // Send password PIN
-          expiresAt: expiry // Send expiry duration
-        }
-      });
-      
-      const trackingUrl = `${window.NQR_CONFIG.API.BASE_URL}/s/${qrRecord.id}`;
-
-      // logic: ONLY tab-link and tab-file MUST use tracking for it to be useful
-      // tab-contact, tab-payment, tab-text work best when scanned as RAW data
-      if (tabTarget === 'tab-link' || tabTarget === 'tab-file') {
-        currentOptions.data = trackingUrl; 
-        if (document.getElementById('modalShortLink')) document.getElementById('modalShortLink').value = trackingUrl;
-      } else {
-        // For Contact, Payment, and Text, we use the RAW content directly in the QR
-        // This ensures Native Phone support (Add Contact, UPI popup) works instantly.
-        currentOptions.data = currentContent;
-        if (document.getElementById('modalShortLink')) document.getElementById('modalShortLink').value = trackingUrl;
-      }
-
-      updatePreview(true); 
-      qrModal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-
-    } catch (err) {
-      console.error('Cloud Sync Failed:', err);
-      // Fallback: If cloud fails, show the raw content so generator still works
-      currentOptions.data = currentContent;
-      updatePreview(true); 
-      qrModal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    } finally {
-      genBtn.innerHTML = originalText;
-      genBtn.disabled = false;
-    }
-  }
+  // openModal is defined later (after buildSmartOptions). Click listener wired there.
 
   function closeQrModal() {
     qrModal.classList.remove('active');
@@ -610,8 +919,6 @@
   }
 
   const copyLinkBtn = document.getElementById('copyLinkBtn');
-
-  generateBtn.addEventListener('click', openModal);
   closeModal.addEventListener('click', closeQrModal);
   modalBackdrop.addEventListener('click', closeQrModal);
   copyLinkBtn.addEventListener('click', copyShortLink);
@@ -766,18 +1073,14 @@
 
   setTimeout(initQR, 200);
 
-  // Link / Text Input Listeners
+  // ── Style Panel Listeners ──────────────────────────────
   linkInput.addEventListener('input', (e) => { currentContent = e.target.value; });
   textInput.addEventListener('input', (e) => { currentContent = e.target.value; });
   [payeeInput, amountInput, noteInput, currencyInput].forEach(el => el.addEventListener('input', updatePaymentPreview));
 
-  // Style Panel Listeners
   qrColorInput.addEventListener('input', (e) => { currentOptions.dotsOptions.color = e.target.value; });
   bgColorInput.addEventListener('input', (e) => { currentOptions.backgroundOptions.color = e.target.value; });
-  eyeColorInput.addEventListener('input', (e) => { 
-    currentOptions.cornersSquareOptions.color = e.target.value; 
-    currentOptions.cornersDotOptions.color = e.target.value;
-  });
+  eyeColorInput.addEventListener('input', (e) => { currentOptions.cornersSquareOptions.color = e.target.value; currentOptions.cornersDotOptions.color = e.target.value; });
 
   logoInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -809,42 +1112,610 @@
     btn.addEventListener('click', () => {
       patternBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const pat = btn.dataset.pattern;
-      currentOptions.dotsOptions.type = pat;
-      if (pat === 'rounded' || pat === 'dots') {
-        currentOptions.cornersSquareOptions.type = 'extra-rounded';
-        currentOptions.cornersDotOptions.type = 'dot';
-      } else if (pat === 'classy-fluid') {
-        currentOptions.cornersSquareOptions.type = 'extra-rounded';
-        currentOptions.cornersDotOptions.type = 'square';
-      } else {
-        currentOptions.cornersSquareOptions.type = 'square';
-        currentOptions.cornersDotOptions.type = 'square';
-      }
+      applyPattern(btn.dataset.pattern);
     });
   });
 
-  // Tab Switching
+  function applyPattern(pat) {
+    currentOptions.dotsOptions.type = pat;
+    if (pat === 'rounded' || pat === 'dots') {
+      currentOptions.cornersSquareOptions.type = 'extra-rounded';
+      currentOptions.cornersDotOptions.type = 'dot';
+    } else if (pat === 'classy-fluid') {
+      currentOptions.cornersSquareOptions.type = 'extra-rounded';
+      currentOptions.cornersDotOptions.type = 'square';
+    } else {
+      currentOptions.cornersSquareOptions.type = 'square';
+      currentOptions.cornersDotOptions.type = 'square';
+    }
+  }
+
+  // ── CTA Frame Toggle ───────────────────────────────────
+  document.getElementById('ctaFrameToggle').addEventListener('change', (e) => {
+    document.getElementById('ctaFrameWrap').style.display = e.target.checked ? 'block' : 'none';
+  });
+
+  // ── Lead Capture Toggle ────────────────────────────────
+  document.getElementById('leadCaptureToggle').addEventListener('change', (e) => {
+    document.getElementById('leadCaptureWrap').style.display = e.target.checked ? 'block' : 'none';
+  });
+
+  // ── Smart Rules ────────────────────────────────────────
+  const rulesList = document.getElementById('rulesList');
+  let ruleCount = 0;
+
+  function addRule(type='location', val='', url='') {
+    ruleCount++;
+    const row = document.createElement('div');
+    row.className = 'rule-row';
+    row.innerHTML = `
+      <select class="rule-type" data-rule="${ruleCount}">
+        <option value="location" ${type==='location'?'selected':''}>📍 Location</option>
+        <option value="language" ${type==='language'?'selected':''}>🌐 Language</option>
+        <option value="time"     ${type==='time'    ?'selected':''}>⏰ Time (UTC)</option>
+        <option value="scan_count" ${type==='scan_count'?'selected':''}>📊 Scan Count</option>
+      </select>
+      <input class="rule-value" type="text" placeholder="e.g. IN / hi / 08:00-12:00 / 50" value="${val}"/>
+      <input class="rule-url" type="url" placeholder="Redirect URL" value="${url}"/>
+      <button class="remove-rule-btn" onclick="this.parentElement.remove()">✕</button>
+    `;
+    rulesList.appendChild(row);
+  }
+
+  document.getElementById('addRuleBtn').addEventListener('click', () => addRule());
+
+  function getRules() {
+    return Array.from(rulesList.querySelectorAll('.rule-row')).map(row => ({
+      type: row.querySelector('.rule-type').value,
+      value: row.querySelector('.rule-value').value.trim(),
+      url:   row.querySelector('.rule-url').value.trim()
+    })).filter(r => r.value && r.url);
+  }
+
+  // ── Tab Switching ──────────────────────────────────────
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       tabBtns.forEach(b => b.classList.remove('active'));
       tabContents.forEach(tc => tc.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(btn.dataset.target).classList.add('active');
-      
-      if(btn.dataset.target === 'tab-link') {
-        currentContent = linkInput.value || 'https://neverq.in';
-      } else if (btn.dataset.target === 'tab-text') {
-        currentContent = textInput.value || 'Hello NQR';
-      } else if (btn.dataset.target === 'tab-contact') {
-        currentContent = buildVCard();
-      } else if (btn.dataset.target === 'tab-file') {
-        currentContent = "https://neverq.in/dl/file-link";
-      } else if (btn.dataset.target === 'tab-payment') {
-        updatePaymentPreview();
-      }
+      const isLink = btn.dataset.target === 'tab-link';
+      document.getElementById('smartRulesSection').style.display    = isLink ? 'block' : 'none';
+      document.getElementById('retargetingSection').style.display   = isLink ? 'block' : 'none';
+      if(btn.dataset.target === 'tab-link')    { currentContent = linkInput.value || 'https://neverq.in'; }
+      else if(btn.dataset.target === 'tab-text')    { currentContent = textInput.value || 'Hello NQR'; }
+      else if(btn.dataset.target === 'tab-contact') { currentContent = buildVCard(); }
+      else if(btn.dataset.target === 'tab-file')    { currentContent = 'https://neverq.in/dl/file-link'; }
+      else if(btn.dataset.target === 'tab-payment') { updatePaymentPreview(); }
+      else if(btn.dataset.target === 'tab-settings') { loadHistory(); }
     });
   });
+
+  // ── Post-Gen Edit Panel ────────────────────────────────
+  let currentQrId = null;
+
+  function toggleEditPanel() {
+    const panel = document.getElementById('modalEditPanel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+      // sync sliders to current state
+      document.getElementById('meQrColor').value  = currentOptions.dotsOptions.color  || '#0F1636';
+      document.getElementById('meBgColor').value  = currentOptions.backgroundOptions.color || '#FFFFFF';
+      document.getElementById('meEyeColor').value = currentOptions.cornersSquareOptions.color || '#D90429';
+    }
+  }
+
+  // Wire modal edit color pickers
+  document.getElementById('meQrColor').addEventListener('input', (e) => {
+    currentOptions.dotsOptions.color = e.target.value;
+    updatePreview(true);
+    document.getElementById('qrColorInput').value = e.target.value;
+  });
+  document.getElementById('meBgColor').addEventListener('input', (e) => {
+    currentOptions.backgroundOptions.color = e.target.value;
+    updatePreview(true);
+    document.getElementById('bgColorInput').value = e.target.value;
+  });
+  document.getElementById('meEyeColor').addEventListener('input', (e) => {
+    currentOptions.cornersSquareOptions.color = e.target.value;
+    currentOptions.cornersDotOptions.color = e.target.value;
+    updatePreview(true);
+    document.getElementById('eyeColorInput').value = e.target.value;
+  });
+
+  document.querySelectorAll('[data-me-pattern]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-me-pattern]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyPattern(btn.dataset.mePattern);
+      updatePreview(true);
+    });
+  });
+
+  async function saveDesignEdit() {
+    if (!currentQrId) { alert('No saved QR to update.'); return; }
+    const saveBtn = document.getElementById('saveDesignBtn');
+    saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
+    try {
+      await window.API.updateQR(currentQrId, { options: currentOptions });
+      saveBtn.textContent = '✅ Saved!';
+      setTimeout(() => { saveBtn.textContent = '💾 Save Changes'; saveBtn.disabled = false; }, 2000);
+    } catch(err) {
+      alert('Save failed: ' + err.message);
+      saveBtn.textContent = '💾 Save Changes'; saveBtn.disabled = false;
+    }
+  }
+
+  async function buildSmartOptions() {
+    const isPasswordProtected = document.getElementById('passwordProtectToggle')?.checked;
+    const pin    = isPasswordProtected ? document.getElementById('filePinInput')?.value : null;
+    const expiry = document.getElementById('fileExpireSelect')?.value || 'never';
+    const rules  = getRules();
+    const fbPixelId = (document.getElementById('fbPixelId')?.value || '').trim();
+    const gtmId    = (document.getElementById('gtmId')?.value || '').trim();
+    const leadCaptureEnabled = document.getElementById('leadCaptureToggle')?.checked;
+    const lcFields = [];
+    if (document.getElementById('lcName')?.checked)  lcFields.push('name');
+    if (document.getElementById('lcEmail')?.checked) lcFields.push('email');
+    if (document.getElementById('lcPhone')?.checked) lcFields.push('phone');
+    const leadHeading = (document.getElementById('leadHeading')?.value || '').trim();
+    return {
+      password: pin,
+      expiresAt: expiry,
+      rules: rules.length ? rules : undefined,
+      retargeting: (fbPixelId || gtmId) ? { fbPixelId: fbPixelId || null, gtmId: gtmId || null } : undefined,
+      leadCapture: leadCaptureEnabled ? { enabled: true, fields: lcFields, heading: leadHeading || undefined } : undefined
+    };
+  }
+
+  // ── GENERATE BUTTON CLICK ───────────────────────────────
+  generateBtn.onclick = async () => {
+    const activeTab = document.querySelector('.tab-btn.active');
+    const type = activeTab ? activeTab.dataset.target.replace('tab-','') : 'link';
+    
+    let name = '';
+    if (type === 'link') name = document.getElementById('linkName').value;
+    else if (type === 'text') name = document.getElementById('textName').value;
+    else if (type === 'payment') name = document.getElementById('paymentName').value;
+    
+    generateBtn.textContent = 'Generating...'; generateBtn.disabled = true;
+    
+    try {
+      const smartOpts = await buildSmartOptions();
+      const qrData = {
+        name: name || `${type.toUpperCase()} QR`,
+        type: type,
+        content: currentContent,
+        options: currentOptions,
+        smart: smartOpts
+      };
+      
+      const result = await window.API.saveQR(qrData);
+      currentQrId = result.qrId;
+      
+      // Update short link in modal based on user domain settings
+      let shortBase = 'neverq.in/go/';
+      if (userSettings.subdomainType === 'managed' && userSettings.managedSubdomain) {
+        shortBase = `${userSettings.managedSubdomain}.neverq.in/go/`;
+      } else if (userSettings.subdomainType === 'custom' && userSettings.customDomain) {
+        shortBase = `${userSettings.customDomain}/go/`;
+      }
+      
+      const finalShortUrl = `https://${shortBase}${result.qrId}`;
+      document.getElementById('modalShortLink').value = finalShortUrl;
+      
+      // Update Preview & Show Modal
+      updatePreview(true);
+      qrModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      // Refresh history table if it's open
+      if (activeTab.dataset.target === 'tab-settings') loadHistory();
+      
+    } catch(err) {
+      alert('Generation failed: ' + err.message);
+    } finally {
+      generateBtn.innerHTML = `<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 14v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m14 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg> Generate & Preview`;
+      generateBtn.disabled = false;
+    }
+  };
+
+  // ── USER SETTINGS (White-Label) ────────────────────────
+  let userSettings = { brandName: '', customDomain: '', subdomainType: 'managed', managedSubdomain: '' };
+
+  async function loadUserSettings() {
+    try {
+      const settings = await window.API.getUserSettings();
+      if (settings) {
+        userSettings = { ...userSettings, ...settings };
+        if (settings.brandName) {
+           document.getElementById('wlBrandName').value = settings.brandName;
+           document.getElementById('uiWatermark').textContent = settings.brandName.toUpperCase();
+        }
+        if (settings.subdomainType) {
+           setSubdomainType(settings.subdomainType, false);
+        }
+        if (settings.managedSubdomain) {
+           document.getElementById('managedSubdomainInput').value = settings.managedSubdomain;
+        }
+        if (settings.customDomain) {
+           document.getElementById('customDomainInput').value = settings.customDomain;
+           updateDomainUI(settings.customDomain);
+        }
+      }
+    } catch(e) { console.warn('Settings load failed:', e); }
+  }
+
+  function setSubdomainType(type, save=true) {
+    userSettings.subdomainType = type;
+    const isManaged = type === 'managed';
+    
+    // UI toggle
+    document.getElementById('btnManagedType').className = isManaged ? 'btn btn--secondary flex-1 btn--sm active' : 'btn btn--ghost flex-1 btn--sm';
+    document.getElementById('btnCustomType').className  = !isManaged ? 'btn btn--secondary flex-1 btn--sm active' : 'btn btn--ghost flex-1 btn--sm';
+    
+    document.getElementById('managedSubdomainGroup').style.display = isManaged ? 'block' : 'none';
+    document.getElementById('customDomainGroup').style.display  = !isManaged ? 'block' : 'none';
+  }
+
+  async function saveDomainSettings() {
+    const btn = document.getElementById('saveBrandingAllBtn');
+    const oldTxt = btn.textContent;
+    btn.textContent = 'Saving...'; btn.disabled = true;
+    
+    try {
+      if (userSettings.subdomainType === 'managed') {
+        userSettings.managedSubdomain = document.getElementById('managedSubdomainInput').value.trim().toLowerCase();
+      } else {
+        const domain = document.getElementById('customDomainInput').value.trim().toLowerCase().replace(/^https?:\/\//,'');
+        userSettings.customDomain = domain;
+        updateDomainUI(domain);
+      }
+      
+      await window.API.saveUserSettings(userSettings);
+      alert('Domain settings updated successfully!');
+    } catch(e) {
+      alert('Save failed: ' + e.message);
+    } finally {
+      btn.textContent = oldTxt; btn.disabled = false;
+    }
+  }
+
+  function updateDomainUI(domain) {
+    if(!domain) return;
+    document.getElementById('dnsTableWrap').style.display = 'block';
+    const parts = domain.split('.');
+    document.getElementById('dnsHost').textContent = parts.length >= 3 ? parts[0] : '@';
+  }
+
+  document.getElementById('saveBrandingBtn').onclick = async () => {
+    const name = document.getElementById('wlBrandName').value.trim();
+    try {
+      userSettings.brandName = name;
+      await window.API.saveUserSettings(userSettings);
+      document.getElementById('uiWatermark').textContent = (name || 'NQR').toUpperCase();
+      alert('Branding watermark updated!');
+    } catch(e) { alert('Save failed: ' + e.message); }
+  };
+
+  // ── HISTORY MANAGEMENT ─────────────────────────────────
+  async function loadHistory() {
+    const tbody = document.getElementById('historyTableBody');
+    tbody.innerHTML = '<tr><td colspan="4" style="padding:2rem; text-align:center; opacity:0.5">Loading history...</td></tr>';
+    
+    try {
+      const history = await window.API.getHistory();
+      if (!history || history.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="padding:2rem; text-align:center; color:rgba(255,255,255,0.3)">No history found. Generate your first QR!</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = '';
+      history.reverse().forEach(qr => {
+        const date = new Date(qr.createdAt || Date.now()).toLocaleDateString();
+        const shortUrl = qr.shortUrl || `neverq.in/go/${qr.qrId}`;
+        const name = qr.name || 'Untitled QR';
+        
+        tbody.innerHTML += `
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
+            <td style="padding:1rem">
+              <div style="font-weight:600">${name}</div>
+              <div class="t-small text-muted" style="font-size:0.75rem">${date}</div>
+            </td>
+            <td style="padding:1rem"><span class="status-badge" style="background:rgba(255,255,255,0.05); font-size:0.7rem">${qr.type || 'Link'}</span></td>
+            <td style="padding:1rem">
+              <div class="flex items-center gap-xs">
+                <code style="font-size:0.8rem; color:var(--c-red)">${shortUrl.replace(/^https?:\/\//,'')}</code>
+                <button class="btn btn--ghost btn--icon btn--tiny" onclick="copyText('${shortUrl}')">📋</button>
+              </div>
+            </td>
+            <td style="padding:1rem; text-align:center">
+              <div class="flex justify-center gap-sm">
+                <button class="btn btn--ghost btn--sm" onclick="editQR('${qr.qrId}')">✏️ Edit</button>
+                <button class="btn btn--ghost btn--sm" onclick="deleteHistoryQR('${qr.qrId}')" style="color:var(--c-red)">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    } catch(e) {
+      tbody.innerHTML = `<tr><td colspan="4" style="padding:2rem; text-align:center; color:var(--c-red)">Error loading history: ${e.message}</td></tr>`;
+    }
+  }
+
+  function copyText(txt) {
+    navigator.clipboard.writeText(txt);
+    alert('Copied to clipboard!');
+  }
+
+  async function deleteHistoryQR(id) {
+    if (!confirm('Are you sure you want to delete this QR code permanently?')) return;
+    try {
+      await window.API.deleteQR(id);
+      loadHistory();
+    } catch(e) { alert('Delete failed: ' + e.message); }
+  }
+
+  async function editQR(id) {
+    try {
+      // Find QR in local history or fetch it
+      const history = await window.API.getHistory();
+      const qr = history.find(q => q.qrId === id);
+      if (!qr) return;
+      
+      currentQrId = qr.qrId;
+      
+      // Populate form based on type
+      const type = qr.type || 'link';
+      document.querySelector(`[data-target="tab-${type}"]`).click();
+      
+      if (type === 'link') {
+        document.getElementById('linkInput').value = qr.content;
+        document.getElementById('linkName').value = qr.name || '';
+      } else if (type === 'text') {
+        document.getElementById('textInput').value = qr.content;
+        document.getElementById('textName').value = qr.name || '';
+      }
+      
+      // Load design options
+      if (qr.options) {
+        currentOptions = { ...currentOptions, ...qr.options };
+        // Update UI pickers
+        document.getElementById('qrColorInput').value = currentOptions.dotsOptions.color;
+        document.getElementById('bgColorInput').value = currentOptions.backgroundOptions.color;
+        document.getElementById('eyeColorInput').value = currentOptions.cornersSquareOptions.color;
+        
+        const pat = currentOptions.dotsOptions.type || 'square';
+        document.querySelector(`[data-pattern="${pat}"]`)?.click();
+      }
+      
+      currentContent = qr.content;
+      updatePreview(false);
+      
+      // Scroll to generator
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      alert('QR loaded into generator. You can now modify and generate again.');
+      
+    } catch(e) { alert('Failed to load QR: ' + e.message); }
+  }
+
+  // ── BULK GENERATION ────────────────────────────────────
+  let bulkRows = [];
+  let bulkZip  = null;
+
+  document.getElementById('bulkCsvInput').onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target.result;
+      const rows = text.trim().split('\n').map(r => r.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
+      if (rows.length < 2) { showBulkError('CSV is empty or missing headers.'); return; }
+      const headers = rows[0].map(h => h.toLowerCase());
+      const nameIdx = headers.indexOf('name');
+      const urlIdx  = headers.indexOf('url');
+      if (nameIdx === -1 || urlIdx === -1) { showBulkError('CSV must have "name" and "url" columns.'); return; }
+      
+      bulkRows = rows.slice(1).filter(r => r[urlIdx]).map(r => ({ name: r[nameIdx]||'QR', url: r[urlIdx] }));
+      if (!bulkRows.length) { showBulkError('No valid data rows found.'); return; }
+      
+      // Render Preview
+      const tbody = document.getElementById('bulkPreviewBody');
+      tbody.innerHTML = '';
+      bulkRows.slice(0, 5).forEach(r => {
+        tbody.innerHTML += `<tr><td style="padding:0.5rem">${r.name}</td><td style="padding:0.5rem; opacity:0.6">${r.url}</td></tr>`;
+      });
+      document.getElementById('bulkPreviewWrap').style.display = 'block';
+      document.getElementById('bulkCsvLabel').textContent = `✅ ${file.name} (${bulkRows.length} rows)`;
+      document.getElementById('bulkError').style.display = 'none';
+    };
+    reader.readAsText(file);
+  };
+
+  function showBulkError(msg) {
+    const err = document.getElementById('bulkError');
+    err.textContent = msg; err.style.display = 'block';
+    document.getElementById('bulkPreviewWrap').style.display = 'none';
+  }
+
+  document.getElementById('startBulkBtn').onclick = runBulkGeneration;
+
+  async function runBulkGeneration() {
+    document.getElementById('bulkStep1').style.display = 'none';
+    document.getElementById('bulkStep2').style.display = 'block';
+    
+    const zip = new JSZip();
+    const total = bulkRows.length;
+    const bar = document.getElementById('bulkProgressBar');
+    const lbl = document.getElementById('bulkProgressLabel');
+    const pct = document.getElementById('bulkProgressPct');
+
+    for (let i = 0; i < total; i++) {
+      const row = bulkRows[i];
+      // Use current design options for all bulk QRs
+      const bulkOpts = { ...currentOptions, width: 512, height: 512, margin: 20, data: row.url };
+      const q = new QRCodeStyling(bulkOpts);
+      
+      const blob = await new Promise(resolve => {
+        const tmp = document.createElement('div');
+        q.append(tmp);
+        setTimeout(async () => {
+          const b = await q.getRawData('png');
+          resolve(b);
+        }, 100);
+      });
+
+      if (blob) {
+        const safeName = row.name.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+        zip.file(`${String(i+1).padStart(4,'0')}_${safeName}.png`, blob);
+      }
+
+      const p = Math.round(((i+1)/total)*100);
+      bar.style.width = p + '%';
+      lbl.textContent = `${i+1} / ${total}`;
+      pct.textContent = p + '%';
+      await new Promise(r => setTimeout(r, 10));
+    }
+
+    bulkZip = zip;
+    document.getElementById('downloadBulkZipBtn').style.display = 'block';
+    document.getElementById('bulkProgressLabel').textContent = `✅ ${total} QR Codes Ready!`;
+  }
+
+  document.getElementById('downloadBulkZipBtn').onclick = async () => {
+    if (!bulkZip) return;
+    const blob = await bulkZip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.download = `nqr-bulk-${Date.now()}.zip`;
+    a.href = url; a.click();
+  };
+
+  // ── HASH NAVIGATION ─────────────────────────────────────
+  function handleHash() {
+    const hash = window.location.hash.substring(1);
+    if (hash === 'bulk') document.querySelector('[data-target="tab-bulk"]').click();
+    if (hash === 'settings') document.querySelector('[data-target="tab-settings"]').click();
+  }
+  window.addEventListener('hashchange', handleHash);
+  setTimeout(() => { handleHash(); loadUserSettings(); }, 300);
+
+  // ── MODIFIED DOWNLOAD LOGIC (Logical Fix) ───────────────
+  async function downloadQR(extension) {
+    if (!qrCode) return;
+    const downloadOptions = { ...currentOptions, width: 1000, height: 1000 };
+    qrCode.update(downloadOptions);
+
+    const frameEnabled = document.getElementById('ctaFrameToggle')?.checked;
+    const frameText    = document.getElementById('ctaFrameText')?.value  || 'Scan Me';
+    const frameColor   = document.getElementById('ctaFrameColor')?.value || '#20306F';
+    const watermarkTxt = (userSettings.brandName || 'Powered by NEVERNO').toUpperCase();
+    
+    const FRAME_PAD    = frameEnabled ? 60 : 0;
+    const FRAME_FOOT   = frameEnabled ? 80 : 0;
+    const WATERMARK_H  = 60;
+    const TOTAL_H      = 1000 + (frameEnabled ? FRAME_FOOT : 0) + WATERMARK_H;
+    const TOTAL_W      = 1000 + FRAME_PAD * 2;
+
+    if (extension === 'png' || extension === 'pdf') {
+      const blob = await qrCode.getRawData('png');
+      const img  = new Image();
+      img.src = URL.createObjectURL(blob);
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const ctx    = canvas.getContext('2d');
+        canvas.width  = TOTAL_W;
+        canvas.height = TOTAL_H;
+
+        const bgColor = currentOptions.backgroundOptions.color || '#ffffff';
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (frameEnabled) {
+          ctx.fillStyle = frameColor;
+          const r = 32;
+          ctx.beginPath();
+          ctx.moveTo(r, 0); ctx.lineTo(TOTAL_W - r, 0);
+          ctx.quadraticCurveTo(TOTAL_W, 0, TOTAL_W, r);
+          ctx.lineTo(TOTAL_W, TOTAL_H - WATERMARK_H - r);
+          ctx.quadraticCurveTo(TOTAL_W, TOTAL_H - WATERMARK_H, TOTAL_W - r, TOTAL_H - WATERMARK_H);
+          ctx.lineTo(r, TOTAL_H - WATERMARK_H);
+          ctx.quadraticCurveTo(0, TOTAL_H - WATERMARK_H, 0, TOTAL_H - WATERMARK_H - r);
+          ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
+          ctx.closePath(); ctx.fill();
+          ctx.drawImage(img, FRAME_PAD, FRAME_PAD / 2, 1000, 1000);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = "bold 36px 'Manrope', 'Inter', sans-serif";
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(frameText.toUpperCase(), TOTAL_W / 2, 1000 + FRAME_PAD / 2 + 20);
+        } else {
+          ctx.drawImage(img, 0, 0);
+        }
+
+        // Watermark
+        ctx.font = "bold 18px 'Inter', sans-serif";
+        ctx.fillStyle = currentOptions.dotsOptions.color || '#0F1636';
+        ctx.globalAlpha = 0.35;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(watermarkTxt, TOTAL_W / 2, TOTAL_H - WATERMARK_H / 2);
+        ctx.globalAlpha = 1;
+
+        if (extension === 'pdf') {
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({ unit: 'px', format: [canvas.width, canvas.height] });
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+          pdf.save(`nqr-${Date.now()}.pdf`);
+        } else {
+          const link = document.createElement('a');
+          link.download = `nqr-${Date.now()}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }
+        updatePreview(true);
+      };
+      return;
+    }
+
+    if (extension === 'svg' || extension === 'eps') {
+      const blob = await qrCode.getRawData('svg');
+      const text = await blob.text();
+      const parser  = new DOMParser();
+      const svgDoc  = parser.parseFromString(text, 'image/svg+xml');
+      const svgElem = svgDoc.documentElement;
+      const wmH   = 60;
+      const width  = parseInt(svgElem.getAttribute('width'));
+      const height = parseInt(svgElem.getAttribute('height'));
+      svgElem.setAttribute('height', height + wmH);
+      svgElem.setAttribute('viewBox', `0 0 ${width} ${height + wmH}`);
+      const rect = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', '0'); rect.setAttribute('y', height);
+      rect.setAttribute('width', width); rect.setAttribute('height', wmH);
+      rect.setAttribute('fill', currentOptions.backgroundOptions.color || '#ffffff');
+      svgElem.insertBefore(rect, svgElem.firstChild);
+      const textNode = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'text');
+      textNode.setAttribute('x', width / 2); textNode.setAttribute('y', height + wmH / 2);
+      textNode.setAttribute('text-anchor', 'middle'); textNode.setAttribute('dominant-baseline', 'middle');
+      textNode.setAttribute('font-family', "'Inter',sans-serif"); textNode.setAttribute('font-size', '20');
+      textNode.setAttribute('font-weight', 'bold'); textNode.setAttribute('fill', currentOptions.dotsOptions.color || '#0F1636');
+      textNode.setAttribute('opacity', '0.35'); textNode.textContent = watermarkTxt;
+      svgElem.appendChild(textNode);
+      const serializer  = new XMLSerializer();
+      const newSvgText  = serializer.serializeToString(svgDoc);
+
+      if (extension === 'eps') {
+        const epsContent = `%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 ${width} ${height + wmH}\n%%EndComments\n${newSvgText}\n%%EOF`;
+        const epsBlob = new Blob([epsContent], { type: 'application/postscript' });
+        const epsUrl  = URL.createObjectURL(epsBlob);
+        const link = document.createElement('a');
+        link.download = `nqr-${Date.now()}.eps`; link.href = epsUrl; link.click();
+      } else {
+        const newBlob = new Blob([newSvgText], { type: 'image/svg+xml' });
+        const link = document.createElement('a');
+        link.download = `nqr-${Date.now()}.svg`; link.href = URL.createObjectURL(newBlob); link.click();
+      }
+      updatePreview(true);
+    }
+  }
 </script>
 </body>
 </html>

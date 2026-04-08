@@ -13,7 +13,7 @@ const CONFIG = {
   API: {
     // 🌐 PRODUCTION AWS API (eu-north-1 Stockholm)
     // After running 'sam deploy', paste your specific API ID below.
-    BASE_URL: 'https://5tr1w1t0si.execute-api.eu-north-1.amazonaws.com/Prod',
+    BASE_URL: 'http://127.0.0.1:8000',
   },
   STORAGE: {
     USE_LOCAL: false, // Cloud storage enabled for public sync

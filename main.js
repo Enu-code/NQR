@@ -2,9 +2,18 @@
 
 // ── NAV scroll effect ──
 const nav = document.getElementById('mainNav');
+const progressBar = document.getElementById('progressBar');
 if (nav) {
   window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 40);
+    const scrolled = window.scrollY;
+    nav.classList.toggle('scrolled', scrolled > 40);
+    
+    // Update Scroll Progress Bar
+    const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (progressBar && totalHeight > 0) {
+      const progress = (scrolled / totalHeight) * 100;
+      progressBar.style.width = progress + '%';
+    }
   }, { passive: true });
 }
 

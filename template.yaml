@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: NQR Production Backend - SAM Infrastructure
+Description: NQR Production Backend - SAM Infrastructure v3.0 (Marketing Suite)
 
 Globals:
   Api:
     Cors:
-      AllowMethods: "'OPTIONS,GET,POST,PUT,DELETE'"
+      AllowMethods: "'OPTIONS,GET,POST,PUT,PATCH,DELETE'"
       AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With'"
       AllowOrigin: "'*'"
       MaxAge: "'600'"
@@ -16,7 +16,7 @@ Resources:
     Properties:
       StageName: Prod
       Cors:
-        AllowMethods: "'OPTIONS,GET,POST,PUT,DELETE'"
+        AllowMethods: "'OPTIONS,GET,POST,PUT,PATCH,DELETE'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With'"
         AllowOrigin: "'*'"
         MaxAge: "'600'"
@@ -27,16 +27,20 @@ Resources:
       CodeUri: ./lambda/
       Handler: index.handler
       Runtime: nodejs18.x
+      Timeout: 30
       Environment:
         Variables:
           USERS_TABLE: !Ref NqrUsersTable
           QRS_TABLE: !Ref NqrQrsTable
           OTPS_TABLE: !Ref NqrOtpsTable
+          LEADS_TABLE: !Ref NqrLeadsTable
           SES_SENDER: 'support@neverno.in'
+          API_BASE_URL: !Sub "https://${NqrApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref NqrUsersTable }
         - DynamoDBCrudPolicy: { TableName: !Ref NqrQrsTable }
         - DynamoDBCrudPolicy: { TableName: !Ref NqrOtpsTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref NqrLeadsTable }
         - Statement:
             - Effect: Allow
               Action:
@@ -55,6 +59,12 @@ Resources:
             RestApiId: !Ref NqrApi
             Path: /s/{qrId}
             Method: GET
+        LeadSubmit:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NqrApi
+            Path: /s/{qrId}/lead
+            Method: POST
 
   NqrUsersTable:
     Type: AWS::DynamoDB::Table
@@ -94,6 +104,18 @@ Resources:
       TimeToLiveSpecification:
         AttributeName: expiration
         Enabled: true
+
+  NqrLeadsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: NqrLeads
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
 
 Outputs:
   ApiUrl:

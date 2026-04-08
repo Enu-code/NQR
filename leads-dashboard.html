@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Leads Dashboard — NQR</title>
+<meta name="description" content="View and export leads captured by your NQR QR codes."/>
+<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="admin.css"/>
+<script src="config.js"></script>
+<script src="backend.js"></script>
+<style>
+  .leads-toolbar { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+  .stat-pill {
+    display:inline-flex; align-items:center; gap:0.5rem;
+    background:rgba(255,255,255,0.04); border-radius:100px;
+    padding:0.4rem 1rem; font-size:0.85rem; color:rgba(255,255,255,0.6);
+  }
+  .stat-pill strong { color:#e5e2e1; }
+
+  .leads-table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+  .leads-table th {
+    text-align:left; padding:0.75rem 1rem;
+    background:rgba(255,255,255,0.03);
+    color:rgba(255,255,255,0.4); font-size:0.75rem;
+    text-transform:uppercase; letter-spacing:0.07em; font-weight:600;
+  }
+  .leads-table td {
+    padding:0.75rem 1rem;
+    border-top:1px solid rgba(255,255,255,0.04);
+    color:#e5e2e1;
+  }
+  .leads-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .leads-table .sub { color:rgba(255,255,255,0.35); font-size:0.8rem; }
+
+  .filter-bar { display:flex; gap:0.75rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+  .filter-bar input, .filter-bar select {
+    background:rgba(255,255,255,0.05); border:none; border-radius:10px;
+    padding:0.5rem 0.875rem; color:#e5e2e1; font-size:0.85rem; outline:none;
+  }
+  .filter-bar input::placeholder { color:rgba(255,255,255,0.3); }
+
+  .empty-state { text-align:center; padding:4rem 2rem; color:rgba(255,255,255,0.3); }
+  .empty-icon  { font-size:3rem; margin-bottom:1rem; }
+  .empty-state h3 { font-size:1.1rem; font-weight:600; color:rgba(255,255,255,0.5); margin-bottom:0.4rem; }
+
+  .csv-export-btn { margin-left:auto; }
+
+  @media(max-width:640px){ .leads-table th:nth-child(4), .leads-table td:nth-child(4){ display:none } }
+</style>
+</head>
+<body class="admin-body">
+
+<script>
+  if (!window.API?.isLoggedIn() && sessionStorage.getItem('adminLoggedIn') !== 'true') {
+    window.location.href = 'user-login.html';
+  }
+</script>
+
+<nav class="nav" id="mainNav">
+  <div class="nav__inner">
+    <a href="index.html" class="nav__logo">
+      <div class="nav__logo-mark"><img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none';this.parentElement.innerText='N'"></div>
+      <div><div class="nav__logo-text">NQR</div><div class="nav__logo-powered">Powered by Neverno</div></div>
+    </a>
+    <ul class="nav__links">
+      <li><a href="app-generator.html" class="nav__link">Generator</a></li>
+      <li><a href="admin.html" class="nav__link">Admin</a></li>
+      <li><a href="leads-dashboard.html" class="nav__link active">Leads</a></li>
+    </ul>
+    <div class="nav__cta hide-mobile">
+      <a href="#" onclick="window.API.logout()" class="btn btn--ghost btn--sm">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="admin-layout" style="padding: 6rem 2rem 3rem; max-width:1100px; margin:0 auto">
+
+  <div class="flex items-center justify-between mb-xl flex-wrap gap-md">
+    <div>
+      <div class="section-badge" style="display:inline-block; margin-bottom: 0.5rem">Lead Capture</div>
+      <h1 class="t-h1">Leads Dashboard</h1>
+      <p class="t-small text-muted mt-xs">People who filled in your Lead Capture forms before scanning your QR codes.</p>
+    </div>
+    <div class="flex gap-sm">
+      <button class="btn btn--secondary" onclick="loadLeads()" id="refreshBtn">⟳ Refresh</button>
+      <button class="btn btn--primary csv-export-btn" onclick="exportCSV()" id="exportBtn" style="display:none">⬇ Export CSV</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="leads-toolbar" id="statsBar" style="display:none">
+    <div class="stat-pill">Total: <strong id="totalLeads">0</strong></div>
+    <div class="stat-pill">This Week: <strong id="weekLeads">0</strong></div>
+    <div class="stat-pill">QR Codes with Leads: <strong id="uniqueQrs">0</strong></div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-bar" id="filterBar" style="display:none">
+    <input type="text" id="filterName" placeholder="Search by name or email…" oninput="applyFilters()"/>
+    <select id="filterQr" onchange="applyFilters()">
+      <option value="">All QR Codes</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="card card--static" style="overflow-x:auto; padding:0; border-radius:20px">
+    <div id="leadsContent" style="min-height:200px">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>Loading leads…</h3>
+        <p>Fetching your captured leads.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="main.js"></script>
+<script>
+  let allLeads = [];
+  const isAdmin = sessionStorage.getItem('adminLoggedIn') === 'true';
+
+  async function loadLeads() {
+    document.getElementById('refreshBtn').textContent = '…';
+    document.getElementById('leadsContent').innerHTML = `<div class="empty-state"><div class="empty-icon">⏳</div><h3>Loading…</h3></div>`;
+    try {
+      if (isAdmin) {
+        // Admin: fetch all leads
+        allLeads = await window.API.getAllLeads();
+      } else {
+        // User: fetch own leads
+        allLeads = await window.API.getLeads();
+      }
+      renderLeads(allLeads);
+    } catch(e) {
+      document.getElementById('leadsContent').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Error</h3><p style="font-size:0.85rem;color:rgba(255,255,255,0.35)">${e.message}</p></div>`;
+    }
+    document.getElementById('refreshBtn').textContent = '⟳ Refresh';
+  }
+
+  function timeAgo(iso) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff/60000);
+    if (m < 1) return 'Just now';
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m/60);
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h/24)}d ago`;
+  }
+
+  function renderLeads(leads) {
+    if (!leads || leads.length === 0) {
+      document.getElementById('leadsContent').innerHTML = `<div class="empty-state"><div class="empty-icon">🎯</div><h3>No leads yet</h3><p style="font-size:0.85rem;margin-top:0.3rem">Enable Lead Capture on a QR code to start collecting data.</p><a href="app-generator.html" class="btn btn--primary mt-lg" style="display:inline-block;margin-top:1rem">Go to Generator →</a></div>`;
+      document.getElementById('statsBar').style.display = 'none';
+      document.getElementById('filterBar').style.display = 'none';
+      document.getElementById('exportBtn').style.display = 'none';
+      return;
+    }
+
+    // Sort by newest first
+    leads = [...leads].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Stats
+    const now = Date.now();
+    const weekLeads = leads.filter(l => now - new Date(l.createdAt).getTime() < 7*86400000).length;
+    const uniqueQrs = new Set(leads.map(l => l.qrId)).size;
+    document.getElementById('totalLeads').textContent = leads.length;
+    document.getElementById('weekLeads').textContent  = weekLeads;
+    document.getElementById('uniqueQrs').textContent  = uniqueQrs;
+    document.getElementById('statsBar').style.display = 'flex';
+
+    // Populate QR filter
+    const qrSel = document.getElementById('filterQr');
+    const existingQrs = new Set(Array.from(qrSel.options).map(o => o.value).filter(Boolean));
+    [...new Set(leads.map(l => l.qrId))].forEach(qid => {
+      if (!existingQrs.has(qid)) {
+        const opt = document.createElement('option');
+        opt.value = qid; opt.textContent = qid.substring(0, 20);
+        qrSel.appendChild(opt);
+      }
+    });
+    document.getElementById('filterBar').style.display = 'flex';
+    document.getElementById('exportBtn').style.display = 'block';
+
+    // Render
+    const ownerCol = isAdmin ? '<th>Owner Email</th>' : '';
+    let html = `<table class="leads-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>QR ID</th>
+          ${ownerCol}
+          <th>Captured</th>
+        </tr>
+      </thead>
+      <tbody>`;
+    leads.forEach(l => {
+      const ownerCell = isAdmin ? `<td class="sub">${l.ownerEmail || '—'}</td>` : '';
+      html += `<tr>
+        <td>${l.name || '<span class="sub">—</span>'}</td>
+        <td>${l.email || '<span class="sub">—</span>'}</td>
+        <td class="sub">${l.phone || '—'}</td>
+        <td class="sub" title="${l.qrId}">${(l.qrId || '').substring(0,16)}…</td>
+        ${ownerCell}
+        <td class="sub" title="${l.createdAt}">${timeAgo(l.createdAt)}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('leadsContent').innerHTML = html;
+  }
+
+  function applyFilters() {
+    const q   = document.getElementById('filterName').value.toLowerCase();
+    const qrId = document.getElementById('filterQr').value;
+    const filtered = allLeads.filter(l => {
+      const matchQ  = !q   || (l.name||'').toLowerCase().includes(q) || (l.email||'').toLowerCase().includes(q);
+      const matchQr = !qrId || l.qrId === qrId;
+      return matchQ && matchQr;
+    });
+    renderLeads(filtered);
+  }
+
+  function exportCSV() {
+    const headers = isAdmin
+      ? ['Name','Email','Phone','QR ID','Owner Email','Date']
+      : ['Name','Email','Phone','QR ID','Date'];
+    const rows = allLeads.map(l => isAdmin
+      ? [l.name||'',l.email||'',l.phone||'',l.qrId||'',l.ownerEmail||'',l.createdAt||'']
+      : [l.name||'',l.email||'',l.phone||'',l.qrId||'',l.createdAt||'']
+    );
+    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `nqr-leads-${Date.now()}.csv`;
+    link.href = url; link.click();
+  }
+
+  loadLeads();
+</script>
+
+<a href="javascript:history.back()" class="floating-back-btn">
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+  <span>Back</span>
+</a>
+</body>
+</html>
