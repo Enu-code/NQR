@@ -17,7 +17,13 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-qn@hqh=w!jw3svm-z49=l##3ir
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*'] # For development
+ALLOWED_HOSTS = [
+    '35.154.27.174',                                        # Your Public IPv4
+    'ec2-35-154-27-174.ap-south-1.compute.amazonaws.com',   # Your Public DNS
+    'api.neverq.in',                                        # Keep this for later
+    'localhost',
+    '127.0.0.1',
+]
 
 
 # Application definition

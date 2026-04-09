@@ -12,8 +12,7 @@ const CONFIG = {
   },
   API: {
     // 🌐 PRODUCTION API ENDPOINT
-    // Replace with your live Django backend URL (e.g., https://api.neverq.in)
-    BASE_URL: 'https://api.neverq.in',
+    BASE_URL: 'http://35.154.27.174:8000',
   },
   STORAGE: {
     USE_LOCAL: false, // Cloud storage enabled for public sync
