@@ -128,3 +128,5 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_SES_REGION_NAME = os.getenv('AWS_SES_REGION_NAME', 'eu-north-1')
 AWS_SES_REGION_ENDPOINT = os.getenv('AWS_SES_REGION_ENDPOINT', 'email.eu-north-1.amazonaws.com')
+DEFAULT_FROM_EMAIL = 'auth@neverq.in'  # STRICT REQ: auth@neverq.in
+SERVER_EMAIL = 'auth@neverq.in'
