@@ -12,7 +12,7 @@ const CONFIG = {
   },
   API: {
     // 🌐 PRODUCTION API ENDPOINT
-    BASE_URL: 'http://35.154.27.174:8000',
+    BASE_URL: 'https://api.neverq.in',
   },
   STORAGE: {
     USE_LOCAL: false, // Cloud storage enabled for public sync
