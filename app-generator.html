@@ -180,9 +180,13 @@ tailwind.config = {
   if (navUserNameEl) {
     navUserNameEl.textContent = userName;
   }
-  
-  // GSAP Init
-  gsap.fromTo(".gsap-reveal", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power3.out" });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // GSAP Init
+    gsap.fromTo(".gsap-reveal", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power3.out" });
+  });
 </script>
 
 <!-- ═══════════════════════════════════════════
