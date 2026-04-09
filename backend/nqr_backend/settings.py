@@ -126,7 +126,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS Settings
 CORS_ALLOW_ALL_ORIGINS = True # Change this for production
-CSRF_TRUSTED_ORIGINS = ['http://localhost:5500', 'http://127.0.0.1:5500']
+CSRF_TRUSTED_ORIGINS = [
+    'https://api.neverq.in',
+    'https://neverq.in',
+    'https://www.neverq.in',
+]
 
 # AWS SES Configuration
 EMAIL_BACKEND = 'django_ses.SESBackend'
