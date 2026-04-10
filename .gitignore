@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+db.sqlite3
+.env
+.venv
+env/
+venv/
+ENV/
+backend/scratch/
+C:\Users\HP\Desktop\qrcodegen\backend\db.sqlite3
+C:\Users\HP\Desktop\qrcodegen\backend\scratch\

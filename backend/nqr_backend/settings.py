@@ -38,10 +38,13 @@ INSTALLED_APPS = [
     
     # 3rd Party
     'corsheaders',
+    'rest_framework',
+    'rest_framework_simplejwt',
     
     # Custom Apps
     'auth_system',
     'qr_engine',
+    'admin_api',
 ]
 
 MIDDLEWARE = [
@@ -140,3 +143,25 @@ AWS_SES_REGION_NAME = os.getenv('AWS_SES_REGION_NAME', 'eu-north-1')
 AWS_SES_REGION_ENDPOINT = os.getenv('AWS_SES_REGION_ENDPOINT', 'email.eu-north-1.amazonaws.com')
 DEFAULT_FROM_EMAIL = 'auth@neverq.in'  # STRICT REQ: auth@neverq.in
 SERVER_EMAIL = 'auth@neverq.in'
+
+# Django REST Framework Settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+}

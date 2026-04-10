@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import UserOTP
 
 @csrf_exempt
@@ -115,11 +116,17 @@ def verify_otp(request):
                 else:
                     request.session.set_expiry(0) # Browser close
                 
+                # Generate JWT
+                refresh = RefreshToken.for_user(user)
+                
                 return JsonResponse({
                     'message': 'Session established.',
+                    'token': str(refresh.access_token),
                     'user': {
                         'email': user.email,
-                        'is_new': created
+                        'name': f"{user.first_name} {user.last_name}".strip() or user.username,
+                        'is_new': created,
+                        'is_staff': user.is_staff
                     }
                 })
             else:
