@@ -1446,7 +1446,15 @@ tailwind.config = {
         `;
       });
     } catch(e) {
-      tbody.innerHTML = `<tr><td colspan="4" style="padding:2rem; text-align:center; color:var(--c-red)">Error loading history: ${e.message}</td></tr>`;
+      const isNetworkErr = e.message && e.message.startsWith('Network error');
+      tbody.innerHTML = `
+        <tr><td colspan="4" style="padding:2rem; text-align:center; color:rgba(255,255,255,0.3)">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem">
+            <span class="material-symbols-outlined" style="font-size:2rem;opacity:0.4">${isNetworkErr ? 'cloud_off' : 'error_outline'}</span>
+            <span style="font-size:0.8rem">${isNetworkErr ? 'Could not reach server. Check your connection and try again.' : 'Unable to load QR codes. Please refresh.'}</span>
+            <button onclick="loadHistory()" style="margin-top:0.5rem;padding:0.4rem 1rem;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);font-size:0.75rem;cursor:pointer;color:white">↺ Retry</button>
+          </div>
+        </td></tr>`;
     }
   }
 

@@ -250,7 +250,7 @@ class NQRBackend {
    * - Handles 401 (token expired) and 5xx (server errors) globally
    * - Arms/clears cold-start indicator
    */
-  async request(path, method = 'GET', body = null) {
+  async request(path, method = 'GET', body = null, { silent = false } = {}) {
     // ── Local mock mode ──
     if (this.config.STORAGE.USE_LOCAL) {
       return this.mockRequest(path, method, body);
@@ -271,7 +271,7 @@ class NQRBackend {
     // ── Build fetch options ──
     const options = { method, headers };
 
-    if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+    if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')) {
       options.body = JSON.stringify(sanitizePayload(body));
     }
 
@@ -284,7 +284,10 @@ class NQRBackend {
     } catch (networkErr) {
       // Network failure (no internet, DNS, CORS blocked pre-flight, etc.)
       this._clearColdStart();
-      NQRToast.show('No internet connection or server unreachable. Please check your network.', 'error');
+      // Only show the toast for interactive requests; silent=true for background data loads
+      if (!silent) {
+        NQRToast.show('No internet connection or server unreachable. Please check your network.', 'error');
+      }
       throw new Error('Network error: ' + networkErr.message);
     }
 
@@ -382,22 +385,21 @@ class NQRBackend {
   ━━━━━━━━━━━━━━━━━━━━━━━━ */
 
   async saveQR(qrData) {
-    const email = sessionStorage.getItem('userEmail') || 'anonymous@nqr.io';
-    return this.request('/qrs', 'POST', { ...qrData, ownerEmail: email });
+    return this.request('/api/qr/save/', 'POST', qrData);
   }
 
   async updateQR(qrId, updates) {
-    return this.request(`/qrs/${qrId}`, 'PATCH', updates);
+    return this.request('/api/qr/save/', 'POST', { ...updates, qrId });
   }
 
   async deleteQR(qrId) {
-    return this.request(`/qrs/${qrId}`, 'DELETE');
+    return this.request(`/api/qr/${encodeURIComponent(qrId)}/delete/`, 'DELETE');
   }
 
   async getHistory() {
-    const email = sessionStorage.getItem('userEmail');
-    if (!email) return [];
-    return this.request(`/qrs?ownerEmail=${encodeURIComponent(email)}`, 'GET');
+    // silent=true so a cold-start or transient failure doesn't show the
+    // "No internet connection" toast when just loading the settings tab.
+    return this.request('/api/qr/list/', 'GET', null, { silent: true });
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━
