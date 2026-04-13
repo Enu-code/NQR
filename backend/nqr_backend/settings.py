@@ -135,14 +135,16 @@ CSRF_TRUSTED_ORIGINS = [
     'https://www.neverq.in',
 ]
 
-# AWS SES Configuration
-EMAIL_BACKEND = 'django_ses.SESBackend'
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_SES_REGION_NAME = os.getenv('AWS_SES_REGION_NAME', 'eu-north-1')
-AWS_SES_REGION_ENDPOINT = os.getenv('AWS_SES_REGION_ENDPOINT', 'email.eu-north-1.amazonaws.com')
-DEFAULT_FROM_EMAIL = 'auth@neverq.in'  # STRICT REQ: auth@neverq.in
-SERVER_EMAIL = 'auth@neverq.in'
+# Email Configuration (Resend SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.resend.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'resend'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+
+# Crucial: This must match your verified domain!
+DEFAULT_FROM_EMAIL = 'support@neverq.in'
 
 # Django REST Framework Settings
 REST_FRAMEWORK = {
