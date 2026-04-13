@@ -739,15 +739,15 @@ tailwind.config = {
   </div>
 </div>
 
-<script src="main.js"></script>
 <script>
-  // State & Elements
+  // ── STATE & CONSTANTS ────────────────────────────────────
   let qrCode = null;
   let currentContent = 'https://neverq.in';
+  let currentQrId = null;
+  let userSettings = { brandName: '', customDomain: '', subdomainType: 'managed', managedSubdomain: '' };
+
   let currentOptions = {
-    width: 1000,
-    height: 1000,
-    margin: 40,
+    width: 1000, height: 1000, margin: 40,
     data: "https://neverq.in",
     image: "",
     dotsOptions: { color: "#0F1636", type: "square" },
@@ -758,182 +758,37 @@ tailwind.config = {
     imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 10 }
   };
 
-  const qrModal = document.getElementById('qrModal');
-  const modalQrWrap = document.getElementById('modalQrWrap');
-  const generateBtn = document.getElementById('generateBtn');
-  const closeModal = document.getElementById('closeModal');
+  const qrModal       = document.getElementById('qrModal');
+  const modalQrWrap   = document.getElementById('modalQrWrap');
+  const generateBtn   = document.getElementById('generateBtn');
+  const closeModal    = document.getElementById('closeModal');
   const modalBackdrop = document.getElementById('modalBackdrop');
   
-  const tabBtns = document.querySelectorAll('.tab-trigger');
-  const tabContents = document.querySelectorAll('.gen-form-content');
-  const linkInput = document.getElementById('linkInput');
-  const textInput = document.getElementById('textInput');
-  const payeeInput = document.getElementById('payeeInput');
-  const amountInput = document.getElementById('amountInput');
-  const noteInput = document.getElementById('noteInput');
-  const currencyInput = document.getElementById('currencyInput');
+  const tabBtns       = document.querySelectorAll('.tab-trigger');
+  const tabContents   = document.querySelectorAll('.gen-form-content');
   
-  const qrColorInput = document.getElementById('qrColorInput');
-  const bgColorInput = document.getElementById('bgColorInput');
+  const linkInput     = document.getElementById('linkInput');
+  const linkName      = document.getElementById('linkName');
+  const textInput     = document.getElementById('textInput');
+  const textName      = document.getElementById('textName');
+  const payeeInput    = document.getElementById('payeeInput');
+  const amountInput   = document.getElementById('amountInput');
+  const noteInput     = document.getElementById('noteInput');
+  const currencyInput = document.getElementById('currencyInput');
+  const paymentName   = document.getElementById('paymentName');
+  
+  const qrColorInput  = document.getElementById('qrColorInput');
+  const bgColorInput  = document.getElementById('bgColorInput');
   const eyeColorInput = document.getElementById('eyeColorInput');
-  const logoInput = document.getElementById('logoInput');
+  const logoInput     = document.getElementById('logoInput');
   const removeLogoBtn = document.getElementById('removeLogoBtn');
-  const patternBtns = document.querySelectorAll('.gen-pattern-btn');
+  const patternBtns   = document.querySelectorAll('.gen-pattern-btn');
 
-  // ── vCARD BUILDER: reads form fields and builds a valid vCard string ──
-  function buildVCard() {
-    const firstName = (document.getElementById('vcardFirstName')?.value || '').trim();
-    const lastName  = (document.getElementById('vcardLastName')?.value  || '').trim();
-    const company   = (document.getElementById('vcardCompany')?.value   || '').trim();
-    const title     = (document.getElementById('vcardTitle')?.value     || '').trim();
-    const phone     = (document.getElementById('vcardPhone')?.value     || '').trim();
-    const email     = (document.getElementById('vcardEmail')?.value     || '').trim();
-
-    let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
-    if (firstName || lastName) vcard += `N:${lastName};${firstName}\nFN:${firstName} ${lastName}\n`;
-    if (company)  vcard += `ORG:${company}\n`;
-    if (title)    vcard += `TITLE:${title}\n`;
-    if (phone)    vcard += `TEL;TYPE=CELL:${phone}\n`;
-    if (email)    vcard += `EMAIL:${email}\n`;
-    vcard += 'END:VCARD';
-    return vcard;
-  }
-
-  // ── Wire up vCard inputs to update currentContent live as user types ──
-  // ── Tab Switching Logic ──
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.target;
-      
-      // Update UI Toggles
-      tabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      tabContents.forEach(c => c.classList.remove('active'));
-      const activeContent = document.getElementById(target);
-      if (activeContent) activeContent.classList.add('active');
-      
-      // Show/Hide Security Settings (Only for Link and File)
-      const securitySettings = document.getElementById('sharedSecuritySettings');
-      if (securitySettings) {
-        securitySettings.style.display = (target === 'tab-link' || target === 'tab-file') ? 'block' : 'none';
-      }
-
-      // Reset content based on tab
-      if (target === 'tab-link') currentContent = linkInput.value || 'https://neverq.in';
-      if (target === 'tab-text') currentContent = textInput.value || '';
-      if (target === 'tab-payment') currentContent = buildUPI(); 
-      if (target === 'tab-contact') currentContent = buildVCard();
-      
-      updatePreview(false);
-    });
-  });
-
-  // ── UPI BUILDER ──
-  function buildUPI() {
-    const payee = (payeeInput?.value || '').trim();
-    const amount = (amountInput?.value || '').trim();
-    const note = (noteInput?.value || '').trim();
-    if (!payee) return '';
-    let upi = `upi://pay?pa=${payee}&pn=NQR%20User&cu=INR`;
-    if (amount) upi += `&am=${amount}`;
-    if (note) upi += `&tn=${encodeURIComponent(note)}`;
-    return upi;
-  }
-
-  // Update inputs
-  [linkInput, textInput, payeeInput, amountInput, noteInput].forEach(el => {
-    if (el) el.addEventListener('input', () => {
-      const activeTab = document.querySelector('.tab-btn.active');
-      const target = activeTab ? activeTab.dataset.target : 'tab-link';
-      if (target === 'tab-link') currentContent = linkInput.value;
-      if (target === 'tab-text') currentContent = textInput.value;
-      if (target === 'tab-payment') currentContent = buildUPI();
-      updatePreview(false);
-    });
-  });
-
-
-  // ── FILE TAB: Browse button, drag-and-drop, password protect toggle ──
-  let selectedFileData = null; // stores base64 or file object name
-
-  const browseBtn = document.getElementById('browseFilesBtn');
-  const filePicker = document.getElementById('filePickerInput');
-  const dropZone = document.getElementById('fileDropZone');
-  const pwToggle = document.getElementById('passwordProtectToggle');
-  const pinWrap = document.getElementById('pinInputWrap');
-
-  // Browse button → triggers the hidden file input
-  if (browseBtn && filePicker) {
-    browseBtn.addEventListener('click', () => filePicker.click());
-
-    filePicker.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) handleFileSelected(file);
-    });
-  }
-
-  // Drag & Drop wiring
-  if (dropZone) {
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.style.borderColor = 'var(--c-red)';
-    });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.style.borderColor = '';
-    });
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.style.borderColor = '';
-      const file = e.dataTransfer.files[0];
-      if (file) handleFileSelected(file);
-    });
-  }
-
-  function handleFileSelected(file) {
-    selectedFileData = file;
-    const label = document.getElementById('fileDropLabel');
-    const sub = document.getElementById('fileDropSub');
-    if (label) label.textContent = `✅ ${file.name}`;
-    if (sub) sub.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB · ${file.type || 'Unknown type'}`;
-    // Set content to a placeholder — file uploads need cloud hosting, so show the file name for now
-    const activeTab = document.querySelector('.tab-btn.active');
-    if (activeTab && activeTab.dataset.target === 'tab-file') {
-      currentContent = `File: ${file.name}`;
-    }
-  }
-
-  // Password Protect toggle
-  if (pwToggle && pinWrap) {
-    pwToggle.addEventListener('change', () => {
-      pinWrap.style.display = pwToggle.checked ? 'block' : 'none';
-      if (!pwToggle.checked) {
-        const pinInput = document.getElementById('filePinInput');
-        if (pinInput) pinInput.value = '';
-      }
-    });
-  }
-
-  // Show Smart Rules + Retargeting on initial load (Link tab is default)
-  document.getElementById('smartRulesSection').style.display  = 'block';
-  document.getElementById('retargetingSection').style.display = 'block';
-
-  // openModal is defined later (after buildSmartOptions). Click listener wired there.
-
-  function closeQrModal() {
-    qrModal.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
-  const copyLinkBtn = document.getElementById('copyLinkBtn');
-  closeModal.addEventListener('click', closeQrModal);
-  modalBackdrop.addEventListener('click', closeQrModal);
-  copyLinkBtn.addEventListener('click', copyShortLink);
-
+  // ── INITIALIZATION ─────────────────────────────────────────
   function initQR() {
     if (!window.QRCodeStyling) return;
     qrCode = new QRCodeStyling(currentOptions);
-    // Initial render not needed on screen, only in modal
+    updatePreview(false);
   }
 
   function updatePreview(toModal = false) {
@@ -941,683 +796,358 @@ tailwind.config = {
     currentOptions.data = currentContent || 'https://neverq.in';
     
     if (toModal) {
-      // For the UI preview, we use a smaller display size but keep the high-res options for download
       const previewOptions = { ...currentOptions, width: 300, height: 300 };
       qrCode.update(previewOptions);
       modalQrWrap.innerHTML = '';
       qrCode.append(modalQrWrap);
+    } else {
+      const livePreview = document.getElementById('livePreviewQr');
+      if (livePreview) {
+        const liveOptions = { ...currentOptions, width: 200, height: 200 };
+        qrCode.update(liveOptions);
+        livePreview.innerHTML = '';
+        qrCode.append(livePreview);
+        // Ensure preview density updates for short content too
+        const qrSize = currentContent.length > 50 ? 250 : 200;
+        livePreview.style.width = qrSize + 'px';
+        livePreview.style.height = qrSize + 'px';
+      }
     }
   }
 
-  async function downloadQR(extension) {
-    if(!qrCode) return;
-    
-    // We create a temporary high-res version for download
-    const downloadOptions = { ...currentOptions, width: 1000, height: 1000 };
-    qrCode.update(downloadOptions);
-
-    if (extension === 'png') {
-      const blob = await qrCode.getRawData('png');
-      const img = new Image();
-      img.src = URL.createObjectURL(blob);
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const padding = 60;
-        const watermarkHeight = 80;
-        
-        canvas.width = 1000;
-        canvas.height = 1000 + watermarkHeight;
-        
-        // Fill background
-        ctx.fillStyle = currentOptions.backgroundOptions.color || '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw QR
-        ctx.drawImage(img, 0, 0);
-        
-        // Draw Watermark
-        ctx.font = "bold 24px 'Inter', sans-serif";
-        ctx.fillStyle = currentOptions.dotsOptions.color || '#0F1636';
-        ctx.globalAlpha = 0.4;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.letterSpacing = "0.1em";
-        ctx.fillText("POWERED BY NEVERNO", canvas.width / 2, 1000 + (watermarkHeight / 2) - 10);
-        
-        const link = document.createElement('a');
-        link.download = `nqr-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        
-        // Restore preview state
-        updatePreview(true);
-      };
-    } else if (extension === 'svg') {
-      const blob = await qrCode.getRawData('svg');
-      const text = await blob.text();
-      
-      const parser = new DOMParser();
-      const svgDoc = parser.parseFromString(text, 'image/svg+xml');
-      const svgElem = svgDoc.documentElement;
-      
-      const watermarkHeight = 80;
-      const width = parseInt(svgElem.getAttribute('width'));
-      const height = parseInt(svgElem.getAttribute('height'));
-      
-      svgElem.setAttribute('height', height + watermarkHeight);
-      svgElem.setAttribute('viewBox', `0 0 ${width} ${height + watermarkHeight}`);
-      
-      // Add background for watermark area
-      const rect = svgDoc.createElementNS("http://www.w3.org/2000/svg", "rect");
-      rect.setAttribute("x", "0");
-      rect.setAttribute("y", height);
-      rect.setAttribute("width", width);
-      rect.setAttribute("height", watermarkHeight);
-      rect.setAttribute("fill", currentOptions.backgroundOptions.color || "#ffffff");
-      svgElem.insertBefore(rect, svgElem.firstChild);
-
-      const textNode = svgDoc.createElementNS("http://www.w3.org/2000/svg", "text");
-      textNode.setAttribute("x", width / 2);
-      textNode.setAttribute("y", height + (watermarkHeight / 2));
-      textNode.setAttribute("text-anchor", "middle");
-      textNode.setAttribute("dominant-baseline", "middle");
-      textNode.setAttribute("font-family", "'Inter', sans-serif");
-      textNode.setAttribute("font-size", "24");
-      textNode.setAttribute("font-weight", "bold");
-      textNode.setAttribute("letter-spacing", "0.1em");
-      textNode.setAttribute("fill", currentOptions.dotsOptions.color || "#0F1636");
-      textNode.setAttribute("opacity", "0.4");
-      textNode.textContent = "POWERED BY NEVERNO";
-      
-      svgElem.appendChild(textNode);
-      
-      const serializer = new XMLSerializer();
-      const newSvgText = serializer.serializeToString(svgDoc);
-      const newBlob = new Blob([newSvgText], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(newBlob);
-      
-      const link = document.createElement('a');
-      link.download = `nqr-${Date.now()}.svg`;
-      link.href = url;
-      link.click();
-      
-      // Restore preview state
-      updatePreview(true);
+  // ── VALIDATION UTILS ──────────────────────────────────────
+  function showFieldError(el, msg) {
+    if (!el) return;
+    el.classList.add('border-primary', 'ring-1', 'ring-primary/20');
+    let err = el.parentElement.querySelector('.field-error');
+    if (!err) {
+      err = document.createElement('div');
+      err.className = 'field-error text-primary text-[10px] font-bold uppercase tracking-widest mt-1 animate-pulse';
+      el.parentElement.appendChild(err);
     }
+    err.textContent = msg;
   }
 
-  function copyShortLink() {
-    const input = document.getElementById('modalShortLink');
-    input.select();
-    document.execCommand('copy');
-    alert('Link copied to clipboard!');
+  function clearFieldErrors() {
+    document.querySelectorAll('.field-error').forEach(e => e.remove());
+    document.querySelectorAll('.premium-input').forEach(i => i.classList.remove('border-primary', 'ring-1', 'ring-primary/20'));
+  }
+
+  function validateQRForm(type) {
+    clearFieldErrors();
+    let isValid = true;
+
+    if (type === 'link') {
+      if (!linkInput.value.trim()) { showFieldError(linkInput, 'Destination URL is required'); isValid = false; }
+      if (!linkName.value.trim()) { showFieldError(linkName, 'QR Name is required'); isValid = false; }
+    } else if (type === 'text') {
+      if (!textInput.value.trim()) { showFieldError(textInput, 'Text content is required'); isValid = false; }
+      if (!textName.value.trim()) { showFieldError(textName, 'QR Name is required'); isValid = false; }
+    } else if (type === 'contact') {
+      const fn = document.getElementById('vcardFirstName');
+      const ln = document.getElementById('vcardLastName');
+      const ph = document.getElementById('vcardPhone');
+      const em = document.getElementById('vcardEmail');
+      if (!fn?.value.trim()) { showFieldError(fn, 'First Name is required'); isValid = false; }
+      if (!ln?.value.trim()) { showFieldError(ln, 'Last Name is required'); isValid = false; }
+      if (!ph?.value.trim()) { showFieldError(ph, 'Phone number is required'); isValid = false; }
+      if (!em?.value.trim()) { showFieldError(em, 'Email address is required'); isValid = false; }
+    } else if (type === 'payment') {
+      if (!payeeInput.value.trim()) { showFieldError(payeeInput, 'UPI ID / Payee is required'); isValid = false; }
+      if (!paymentName.value.trim()) { showFieldError(paymentName, 'Payment Name is required'); isValid = false; }
+    } else if (type === 'file') {
+       const hasFile = !!document.getElementById('fileDropLabel').textContent.includes('✅') || !!document.getElementById('filePickerInput').files.length;
+       if(!hasFile) { alert('Please upload a file first.'); isValid = false; }
+    }
+
+    return isValid;
+  }
+
+  // ── FORM HELPERS ──────────────────────────────────────────
+  function buildVCard() {
+    const fn = (document.getElementById('vcardFirstName')?.value || '').trim();
+    const ln = (document.getElementById('vcardLastName')?.value || '').trim();
+    const org = (document.getElementById('vcardCompany')?.value || '').trim();
+    const title = (document.getElementById('vcardTitle')?.value || '').trim();
+    const tel = (document.getElementById('vcardPhone')?.value || '').trim();
+    const email = (document.getElementById('vcardEmail')?.value || '').trim();
+    let v = 'BEGIN:VCARD\nVERSION:3.0\n';
+    if(fn || ln) v += `N:${ln};${fn}\nFN:${fn} ${ln}\n`;
+    if(org) v += `ORG:${org}\n`;
+    if(title) v += `TITLE:${title}\n`;
+    if(tel) v += `TEL;TYPE=CELL:${tel}\n`;
+    if(email) v += `EMAIL:${email}\n`;
+    v += 'END:VCARD';
+    return v;
   }
 
   function updatePaymentPreview() {
-    const payee = (document.getElementById('payeeInput')?.value || '').trim();
-    const amount = (document.getElementById('amountInput')?.value || '').trim();
-    const note = (document.getElementById('noteInput')?.value || '').trim();
-    const curr = (document.getElementById('currencyInput')?.value || 'INR').toUpperCase();
-
-    if (!payee) {
-      // No payee entered yet — show placeholder
-      currentContent = 'upi://pay?pa=yourname@upi&pn=NQR&cu=INR';
-      return;
-    }
-
+    const payee = (payeeInput?.value || '').trim();
+    const amount = (amountInput?.value || '').trim();
+    const note = (noteInput?.value || '').trim();
+    const curr = (currencyInput?.value || 'INR').toUpperCase();
+    if (!payee) { currentContent = 'upi://pay?pa=yourname@upi&pn=NQR&cu=INR'; return; }
     if (curr === 'INR') {
-      // Standard UPI deep link — opens GPay, PhonePe, Paytm, etc.
-      let upiUrl = `upi://pay?pa=${encodeURIComponent(payee)}&pn=${encodeURIComponent(payee)}&cu=INR`;
-      if (amount) upiUrl += `&am=${encodeURIComponent(amount)}`;
-      if (note)   upiUrl += `&tn=${encodeURIComponent(note)}`;
-      currentContent = upiUrl;
+      let upi = `upi://pay?pa=${encodeURIComponent(payee)}&pn=${encodeURIComponent(payee)}&cu=INR`;
+      if (amount) upi += `&am=${encodeURIComponent(amount)}`;
+      if (note) upi += `&tn=${encodeURIComponent(note)}`;
+      currentContent = upi;
     } else {
-      // Generic crypto/international format
       currentContent = `${curr.toLowerCase()}:${payee}?amount=${amount}&note=${encodeURIComponent(note)}`;
     }
   }
 
-  setTimeout(initQR, 200);
+  async function buildSmartOptions() {
+    const pwTog = document.getElementById('passwordProtectToggle')?.checked;
+    const pin   = pwTog ? document.getElementById('filePinInput')?.value : null;
+    const exp   = document.getElementById('fileExpireSelect')?.value || 'never';
+    const rules = Array.from(document.querySelectorAll('.rule-row')).map(row => ({
+      type: row.querySelector('.rule-type').value,
+      value: row.querySelector('.rule-value').value.trim(),
+      url: row.querySelector('.rule-url').value.trim()
+    })).filter(r => r.value && r.url);
 
-  // ── Style Panel Listeners ──────────────────────────────
-  linkInput.addEventListener('input', (e) => { currentContent = e.target.value; });
-  textInput.addEventListener('input', (e) => { currentContent = e.target.value; });
-  [payeeInput, amountInput, noteInput, currencyInput].forEach(el => el.addEventListener('input', updatePaymentPreview));
+    const fb = (document.getElementById('fbPixelId')?.value || '').trim();
+    const gtm = (document.getElementById('gtmId')?.value || '').trim();
+    const lcTog = document.getElementById('leadCaptureToggle')?.checked;
+    const lcFields = [];
+    if(document.getElementById('lcName')?.checked) lcFields.push('name');
+    if(document.getElementById('lcEmail')?.checked) lcFields.push('email');
+    if(document.getElementById('lcPhone')?.checked) lcFields.push('phone');
+    const lcHead = (document.getElementById('leadHeading')?.value || '').trim();
 
-  qrColorInput.addEventListener('input', (e) => { currentOptions.dotsOptions.color = e.target.value; });
-  bgColorInput.addEventListener('input', (e) => { currentOptions.backgroundOptions.color = e.target.value; });
-  eyeColorInput.addEventListener('input', (e) => { currentOptions.cornersSquareOptions.color = e.target.value; currentOptions.cornersDotOptions.color = e.target.value; });
+    return {
+      password: pin, expiresAt: exp, rules: rules.length ? rules : undefined,
+      retargeting: (fb || gtm) ? { fbPixelId: fb || null, gtmId: gtm || null } : undefined,
+      leadCapture: lcTog ? { enabled: true, fields: lcFields, heading: lcHead || undefined } : undefined
+    };
+  }
 
-  logoInput.addEventListener('change', (e) => {
+  // ── EVENT LISTENERS ────────────────────────────────────────
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      tabContents.forEach(tc => tc.classList.remove('active'));
+      document.getElementById(target)?.classList.add('active');
+
+      const isLink = target === 'tab-link';
+      const isFile = target === 'tab-file';
+      const isSett = target === 'tab-settings';
+
+      document.getElementById('smartRulesSection').style.display = isLink ? 'block' : 'none';
+      document.getElementById('retargetingSection').style.display = isLink ? 'block' : 'none';
+      document.getElementById('sharedSecuritySettings').style.display = (isLink||isFile) ? 'block' : 'none';
+
+      if(isLink) currentContent = linkInput.value || 'https://neverq.in';
+      else if(target === 'tab-text') currentContent = textInput.value || '';
+      else if(target === 'tab-contact') currentContent = buildVCard();
+      else if(target === 'tab-payment') updatePaymentPreview();
+      else if(isFile) currentContent = 'https://neverq.in/dl/file-link';
+      else if(isSett) loadHistory();
+
+      updatePreview(false);
+    });
+  });
+
+  // Combined selector for all real-time inputs
+  const allRealtimeInputs = [
+    linkInput, textInput, payeeInput, amountInput, noteInput, currencyInput,
+    document.getElementById('vcardFirstName'), document.getElementById('vcardLastName'),
+    document.getElementById('vcardCompany'), document.getElementById('vcardTitle'),
+    document.getElementById('vcardPhone'), document.getElementById('vcardEmail'),
+    linkName, textName, paymentName
+  ];
+
+  allRealtimeInputs.forEach(el => {
+    el?.addEventListener('input', () => {
+      const activeTab = document.querySelector('.tab-trigger.active');
+      const target = activeTab?.dataset.target;
+      
+      // Clear error on input
+      if (el.value.trim()) {
+        el.classList.remove('border-primary', 'ring-1', 'ring-primary/20');
+        el.parentElement.querySelector('.field-error')?.remove();
+      }
+
+      if(target === 'tab-link') currentContent = linkInput.value;
+      else if(target === 'tab-text') currentContent = textInput.value;
+      else if(target === 'tab-payment') updatePaymentPreview();
+      else if(target === 'tab-contact') currentContent = buildVCard();
+      
+      updatePreview(false);
+    });
+  });
+
+  qrColorInput?.addEventListener('input', (e) => { currentOptions.dotsOptions.color = e.target.value; updatePreview(false); });
+  bgColorInput?.addEventListener('input', (e) => { currentOptions.backgroundOptions.color = e.target.value; updatePreview(false); });
+  eyeColorInput?.addEventListener('input', (e) => { currentOptions.cornersSquareOptions.color = e.target.value; currentOptions.cornersDotOptions.color = e.target.value; updatePreview(false); });
+
+  logoInput?.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    const preview = document.getElementById('logoPreview');
-    if (file) {
+    if(file) {
       const reader = new FileReader();
       reader.onload = (ev) => {
         currentOptions.image = ev.target.result;
+        const preview = document.getElementById('logoPreview');
+        preview.innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-contain"/>`;
         removeLogoBtn.style.display = 'inline-flex';
-        preview.innerHTML = `<img src="${ev.target.result}" alt="Logo Preview"/>`;
-        preview.style.borderStyle = 'solid';
-        preview.style.borderColor = 'var(--c-red)';
+        updatePreview(false);
       };
       reader.readAsDataURL(file);
     }
   });
-
-  removeLogoBtn.addEventListener('click', () => {
-    currentOptions.image = "";
-    logoInput.value = "";
-    removeLogoBtn.style.display = 'none';
-    const preview = document.getElementById('logoPreview');
-    preview.innerHTML = '<span class="text-muted" style="font-size:0.7rem">No Logo</span>';
-    preview.style.borderStyle = 'dashed';
-    preview.style.borderColor = 'rgba(255,255,255,0.1)';
+  removeLogoBtn?.addEventListener('click', () => {
+    currentOptions.image = ""; logoInput.value = ""; removeLogoBtn.style.display = 'none';
+    document.getElementById('logoPreview').innerHTML = '<span class="material-symbols-outlined text-white/10 text-3xl">image</span>';
+    updatePreview(false);
   });
 
   patternBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       patternBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      applyPattern(btn.dataset.pattern);
+      const pat = btn.dataset.pattern;
+      currentOptions.dotsOptions.type = pat;
+      if (pat === 'rounded' || pat === 'dots') {
+        currentOptions.cornersSquareOptions.type = 'extra-rounded';
+        currentOptions.cornersDotOptions.type = 'dot';
+      } else if (pat === 'classy-fluid') {
+        currentOptions.cornersSquareOptions.type = 'extra-rounded';
+        currentOptions.cornersDotOptions.type = 'square';
+      } else {
+        currentOptions.cornersSquareOptions.type = 'square';
+        currentOptions.cornersDotOptions.type = 'square';
+      }
+      updatePreview(false);
     });
   });
 
-  function applyPattern(pat) {
-    currentOptions.dotsOptions.type = pat;
-    if (pat === 'rounded' || pat === 'dots') {
-      currentOptions.cornersSquareOptions.type = 'extra-rounded';
-      currentOptions.cornersDotOptions.type = 'dot';
-    } else if (pat === 'classy-fluid') {
-      currentOptions.cornersSquareOptions.type = 'extra-rounded';
-      currentOptions.cornersDotOptions.type = 'square';
-    } else {
-      currentOptions.cornersSquareOptions.type = 'square';
-      currentOptions.cornersDotOptions.type = 'square';
-    }
-  }
-
-  // ── CTA Frame Toggle ───────────────────────────────────
-  document.getElementById('ctaFrameToggle').addEventListener('change', (e) => {
-    document.getElementById('ctaFrameWrap').style.display = e.target.checked ? 'block' : 'none';
-  });
-
-  // ── Lead Capture Toggle ────────────────────────────────
-  document.getElementById('leadCaptureToggle').addEventListener('change', (e) => {
-    document.getElementById('leadCaptureWrap').style.display = e.target.checked ? 'block' : 'none';
-  });
-
-  // ── Smart Rules ────────────────────────────────────────
-  const rulesList = document.getElementById('rulesList');
-  let ruleCount = 0;
-
-  function addRule(type='location', val='', url='') {
-    ruleCount++;
-    const row = document.createElement('div');
-    row.className = 'rule-row';
-    row.innerHTML = `
-      <select class="rule-type" data-rule="${ruleCount}">
-        <option value="location" ${type==='location'?'selected':''}>📍 Location</option>
-        <option value="language" ${type==='language'?'selected':''}>🌐 Language</option>
-        <option value="time"     ${type==='time'    ?'selected':''}>⏰ Time (UTC)</option>
-        <option value="scan_count" ${type==='scan_count'?'selected':''}>📊 Scan Count</option>
-      </select>
-      <input class="rule-value" type="text" placeholder="e.g. IN / hi / 08:00-12:00 / 50" value="${val}"/>
-      <input class="rule-url" type="url" placeholder="Redirect URL" value="${url}"/>
-      <button class="remove-rule-btn" onclick="this.parentElement.remove()">✕</button>
-    `;
-    rulesList.appendChild(row);
-  }
-
-  document.getElementById('addRuleBtn').addEventListener('click', () => addRule());
-
-  function getRules() {
-    return Array.from(rulesList.querySelectorAll('.rule-row')).map(row => ({
-      type: row.querySelector('.rule-type').value,
-      value: row.querySelector('.rule-value').value.trim(),
-      url:   row.querySelector('.rule-url').value.trim()
-    })).filter(r => r.value && r.url);
-  }
-
-  // ── Tab Switching ──────────────────────────────────────
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabContents.forEach(tc => tc.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(btn.dataset.target).classList.add('active');
-      const isLink = btn.dataset.target === 'tab-link';
-      document.getElementById('smartRulesSection').style.display    = isLink ? 'block' : 'none';
-      document.getElementById('retargetingSection').style.display   = isLink ? 'block' : 'none';
-      if(btn.dataset.target === 'tab-link')    { currentContent = linkInput.value || 'https://neverq.in'; }
-      else if(btn.dataset.target === 'tab-text')    { currentContent = textInput.value || 'Hello NQR'; }
-      else if(btn.dataset.target === 'tab-contact') { currentContent = buildVCard(); }
-      else if(btn.dataset.target === 'tab-file')    { currentContent = 'https://neverq.in/dl/file-link'; }
-      else if(btn.dataset.target === 'tab-payment') { updatePaymentPreview(); }
-      else if(btn.dataset.target === 'tab-settings') { loadHistory(); }
-    });
-  });
-
-  // ── Post-Gen Edit Panel ────────────────────────────────
-  let currentQrId = null;
-
-  function toggleEditPanel() {
-    const panel = document.getElementById('modalEditPanel');
-    panel.classList.toggle('open');
-    if (panel.classList.contains('open')) {
-      // sync sliders to current state
-      document.getElementById('meQrColor').value  = currentOptions.dotsOptions.color  || '#0F1636';
-      document.getElementById('meBgColor').value  = currentOptions.backgroundOptions.color || '#FFFFFF';
-      document.getElementById('meEyeColor').value = currentOptions.cornersSquareOptions.color || '#D90429';
-    }
-  }
-
-  // Wire modal edit color pickers
-  document.getElementById('meQrColor').addEventListener('input', (e) => {
-    currentOptions.dotsOptions.color = e.target.value;
-    updatePreview(true);
-    document.getElementById('qrColorInput').value = e.target.value;
-  });
-  document.getElementById('meBgColor').addEventListener('input', (e) => {
-    currentOptions.backgroundOptions.color = e.target.value;
-    updatePreview(true);
-    document.getElementById('bgColorInput').value = e.target.value;
-  });
-  document.getElementById('meEyeColor').addEventListener('input', (e) => {
-    currentOptions.cornersSquareOptions.color = e.target.value;
-    currentOptions.cornersDotOptions.color = e.target.value;
-    updatePreview(true);
-    document.getElementById('eyeColorInput').value = e.target.value;
-  });
-
-  document.querySelectorAll('[data-me-pattern]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-me-pattern]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      applyPattern(btn.dataset.mePattern);
-      updatePreview(true);
-    });
-  });
-
-  async function saveDesignEdit() {
-    if (!currentQrId) { alert('No saved QR to update.'); return; }
-    const saveBtn = document.getElementById('saveDesignBtn');
-    saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
-    try {
-      await window.API.updateQR(currentQrId, { options: currentOptions });
-      saveBtn.textContent = '✅ Saved!';
-      setTimeout(() => { saveBtn.textContent = '💾 Save Changes'; saveBtn.disabled = false; }, 2000);
-    } catch(err) {
-      alert('Save failed: ' + err.message);
-      saveBtn.textContent = '💾 Save Changes'; saveBtn.disabled = false;
-    }
-  }
-
-  async function buildSmartOptions() {
-    const isPasswordProtected = document.getElementById('passwordProtectToggle')?.checked;
-    const pin    = isPasswordProtected ? document.getElementById('filePinInput')?.value : null;
-    const expiry = document.getElementById('fileExpireSelect')?.value || 'never';
-    const rules  = getRules();
-    const fbPixelId = (document.getElementById('fbPixelId')?.value || '').trim();
-    const gtmId    = (document.getElementById('gtmId')?.value || '').trim();
-    const leadCaptureEnabled = document.getElementById('leadCaptureToggle')?.checked;
-    const lcFields = [];
-    if (document.getElementById('lcName')?.checked)  lcFields.push('name');
-    if (document.getElementById('lcEmail')?.checked) lcFields.push('email');
-    if (document.getElementById('lcPhone')?.checked) lcFields.push('phone');
-    const leadHeading = (document.getElementById('leadHeading')?.value || '').trim();
-    return {
-      password: pin,
-      expiresAt: expiry,
-      rules: rules.length ? rules : undefined,
-      retargeting: (fbPixelId || gtmId) ? { fbPixelId: fbPixelId || null, gtmId: gtmId || null } : undefined,
-      leadCapture: leadCaptureEnabled ? { enabled: true, fields: lcFields, heading: leadHeading || undefined } : undefined
-    };
-  }
-
-  // ── GENERATE BUTTON CLICK ───────────────────────────────
+  // ── GENERATE SESSION ───────────────────────────────────────
   generateBtn.onclick = async () => {
-    const activeTab = document.querySelector('.tab-btn.active');
+    const activeTab = document.querySelector('.tab-trigger.active');
     const type = activeTab ? activeTab.dataset.target.replace('tab-','') : 'link';
-    
+
+    // Run Validation
+    if (!validateQRForm(type)) return;
+
     let name = '';
-    if (type === 'link') name = document.getElementById('linkName').value;
-    else if (type === 'text') name = document.getElementById('textName').value;
-    else if (type === 'payment') name = document.getElementById('paymentName').value;
+    if(type === 'link') name = linkName?.value;
+    else if(type === 'text') name = textName?.value;
+    else if(type === 'payment') name = paymentName?.value;
+    else if(type === 'contact') name = `${(document.getElementById('vcardFirstName')?.value || '')} ${(document.getElementById('vcardLastName')?.value || '')}`.trim();
     
-    generateBtn.textContent = 'Generating...'; generateBtn.disabled = true;
-    
+    const originalText = generateBtn.innerHTML;
+    generateBtn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> Generating...`;
+    generateBtn.disabled = true;
+
     try {
-      const smartOpts = await buildSmartOptions();
+      const smart = await buildSmartOptions();
       const qrData = {
-        name: name || `${type.toUpperCase()} QR`,
-        type: type,
-        content: currentContent,
-        options: currentOptions,
-        smart: smartOpts
+        name: (name || `${type.toUpperCase()} QR`).trim(),
+        type: type, content: currentContent,
+        options: currentOptions, smart: smart
       };
-      
       const result = await window.API.saveQR(qrData);
       currentQrId = result.qrId;
-      
-      // Update short link in modal based on user domain settings
+
       let shortBase = 'neverq.in/go/';
-      if (userSettings.subdomainType === 'managed' && userSettings.managedSubdomain) {
+      if(userSettings.subdomainType === 'managed' && userSettings.managedSubdomain) {
         shortBase = `${userSettings.managedSubdomain}.neverq.in/go/`;
-      } else if (userSettings.subdomainType === 'custom' && userSettings.customDomain) {
+      } else if(userSettings.subdomainType === 'custom' && userSettings.customDomain) {
         shortBase = `${userSettings.customDomain}/go/`;
       }
+      document.getElementById('modalShortLink').value = `https://${shortBase}${result.qrId}`;
       
-      const finalShortUrl = `https://${shortBase}${result.qrId}`;
-      document.getElementById('modalShortLink').value = finalShortUrl;
-      
-      // Update Preview & Show Modal
       updatePreview(true);
       qrModal.classList.add('active');
       document.body.style.overflow = 'hidden';
-      
-      // Refresh history table if it's open
-      if (activeTab.dataset.target === 'tab-settings') loadHistory();
-      
+      if(type === 'settings') loadHistory();
     } catch(err) {
       alert('Generation failed: ' + err.message);
     } finally {
-      generateBtn.innerHTML = `<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 14v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m14 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg> Generate & Preview`;
+      generateBtn.innerHTML = originalText;
       generateBtn.disabled = false;
     }
   };
 
-  // ── USER SETTINGS (White-Label) ────────────────────────
-  let userSettings = { brandName: '', customDomain: '', subdomainType: 'managed', managedSubdomain: '' };
+  // ── MODAL UTILS ───────────────────────────────────────────
+  function closeQrModal() { qrModal.classList.remove('active'); document.body.style.overflow = ''; }
+  closeModal?.addEventListener('click', closeQrModal);
+  modalBackdrop?.addEventListener('click', closeQrModal);
+  
+  function copyShortLink() {
+    const input = document.getElementById('modalShortLink');
+    input.select(); document.execCommand('copy');
+    alert('Link copied to clipboard!');
+  }
+  document.getElementById('copyLinkBtn')?.addEventListener('click', copyShortLink);
 
+  // ── HISTORY & SETTINGS ──────────────────────────────────────
   async function loadUserSettings() {
     try {
       const settings = await window.API.getUserSettings();
-      if (settings) {
+      if(settings) {
         userSettings = { ...userSettings, ...settings };
-        if (settings.brandName) {
-           document.getElementById('wlBrandName').value = settings.brandName;
-           document.getElementById('uiWatermark').textContent = settings.brandName.toUpperCase();
-        }
-        if (settings.subdomainType) {
-           setSubdomainType(settings.subdomainType, false);
-        }
-        if (settings.managedSubdomain) {
-           document.getElementById('managedSubdomainInput').value = settings.managedSubdomain;
-        }
-        if (settings.customDomain) {
-           document.getElementById('customDomainInput').value = settings.customDomain;
-           updateDomainUI(settings.customDomain);
-        }
+        const wm = document.getElementById('uiWatermark');
+        if(wm && settings.brandName) wm.textContent = settings.brandName.toUpperCase();
       }
     } catch(e) { console.warn('Settings load failed:', e); }
   }
 
-  function setSubdomainType(type, save=true) {
-    userSettings.subdomainType = type;
-    const isManaged = type === 'managed';
-    
-    // UI toggle
-    document.getElementById('btnManagedType').className = isManaged ? 'btn btn--secondary flex-1 btn--sm active' : 'btn btn--ghost flex-1 btn--sm';
-    document.getElementById('btnCustomType').className  = !isManaged ? 'btn btn--secondary flex-1 btn--sm active' : 'btn btn--ghost flex-1 btn--sm';
-    
-    document.getElementById('managedSubdomainGroup').style.display = isManaged ? 'block' : 'none';
-    document.getElementById('customDomainGroup').style.display  = !isManaged ? 'block' : 'none';
-  }
-
-  async function saveDomainSettings() {
-    const btn = document.getElementById('saveBrandingAllBtn');
-    const oldTxt = btn.textContent;
-    btn.textContent = 'Saving...'; btn.disabled = true;
-    
-    try {
-      if (userSettings.subdomainType === 'managed') {
-        userSettings.managedSubdomain = document.getElementById('managedSubdomainInput').value.trim().toLowerCase();
-      } else {
-        const domain = document.getElementById('customDomainInput').value.trim().toLowerCase().replace(/^https?:\/\//,'');
-        userSettings.customDomain = domain;
-        updateDomainUI(domain);
-      }
-      
-      await window.API.saveUserSettings(userSettings);
-      alert('Domain settings updated successfully!');
-    } catch(e) {
-      alert('Save failed: ' + e.message);
-    } finally {
-      btn.textContent = oldTxt; btn.disabled = false;
-    }
-  }
-
-  function updateDomainUI(domain) {
-    if(!domain) return;
-    document.getElementById('dnsTableWrap').style.display = 'block';
-    const parts = domain.split('.');
-    document.getElementById('dnsHost').textContent = parts.length >= 3 ? parts[0] : '@';
-  }
-
-  document.getElementById('saveBrandingBtn').onclick = async () => {
-    const name = document.getElementById('wlBrandName').value.trim();
-    try {
-      userSettings.brandName = name;
-      await window.API.saveUserSettings(userSettings);
-      document.getElementById('uiWatermark').textContent = (name || 'NQR').toUpperCase();
-      alert('Branding watermark updated!');
-    } catch(e) { alert('Save failed: ' + e.message); }
-  };
-
-  // ── HISTORY MANAGEMENT ─────────────────────────────────
   async function loadHistory() {
     const tbody = document.getElementById('historyTableBody');
-    tbody.innerHTML = '<tr><td colspan="4" style="padding:2rem; text-align:center; opacity:0.5">Loading history...</td></tr>';
-    
+    if(!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center opacity-30">Synchronizing...</td></tr>';
     try {
       const history = await window.API.getHistory();
-      if (!history || history.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="padding:2rem; text-align:center; color:rgba(255,255,255,0.3)">No history found. Generate your first QR!</td></tr>';
+      if(!history || history.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center opacity-30">No history found.</td></tr>';
         return;
       }
-      
-      tbody.innerHTML = '';
-      history.reverse().forEach(qr => {
-        const date = new Date(qr.createdAt || Date.now()).toLocaleDateString();
-        const shortUrl = qr.shortUrl || `neverq.in/go/${qr.qrId}`;
-        const name = qr.name || 'Untitled QR';
-        
-        tbody.innerHTML += `
-          <tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
-            <td style="padding:1rem">
-              <div style="font-weight:600">${name}</div>
-              <div class="t-small text-muted" style="font-size:0.75rem">${date}</div>
-            </td>
-            <td style="padding:1rem"><span class="status-badge" style="background:rgba(255,255,255,0.05); font-size:0.7rem">${qr.type || 'Link'}</span></td>
-            <td style="padding:1rem">
-              <div class="flex items-center gap-xs">
-                <code style="font-size:0.8rem; color:var(--c-red)">${shortUrl.replace(/^https?:\/\//,'')}</code>
-                <button class="btn btn--ghost btn--icon btn--tiny" onclick="copyText('${shortUrl}')">📋</button>
-              </div>
-            </td>
-            <td style="padding:1rem; text-align:center">
-              <div class="flex justify-center gap-sm">
-                <button class="btn btn--ghost btn--sm" onclick="editQR('${qr.qrId}')">✏️ Edit</button>
-                <button class="btn btn--ghost btn--sm" onclick="deleteHistoryQR('${qr.qrId}')" style="color:var(--c-red)">🗑️</button>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-    } catch(e) {
-      const isNetworkErr = e.message && e.message.startsWith('Network error');
-      tbody.innerHTML = `
-        <tr><td colspan="4" style="padding:2rem; text-align:center; color:rgba(255,255,255,0.3)">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem">
-            <span class="material-symbols-outlined" style="font-size:2rem;opacity:0.4">${isNetworkErr ? 'cloud_off' : 'error_outline'}</span>
-            <span style="font-size:0.8rem">${isNetworkErr ? 'Could not reach server. Check your connection and try again.' : 'Unable to load QR codes. Please refresh.'}</span>
-            <button onclick="loadHistory()" style="margin-top:0.5rem;padding:0.4rem 1rem;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);font-size:0.75rem;cursor:pointer;color:white">↺ Retry</button>
-          </div>
-        </td></tr>`;
-    }
-  }
-
-  function copyText(txt) {
-    navigator.clipboard.writeText(txt);
-    alert('Copied to clipboard!');
+      tbody.innerHTML = history.reverse().map(qr => `
+        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+          <td class="px-6 py-4">
+            <div class="font-bold">${qr.name || 'Untitled Engine'}</div>
+            <div class="text-[10px] opacity-30 uppercase">${new Date(qr.createdAt).toLocaleDateString()}</div>
+          </td>
+          <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-white/5 text-[9px] uppercase font-bold">${qr.type}</span></td>
+          <td class="px-6 py-4 font-mono text-primary text-[10px]">${qr.qrId}</td>
+          <td class="px-6 py-4 text-center">
+             <button class="p-2 hover:text-primary transition-colors" onclick="editQR('${qr.qrId}')"><span class="material-symbols-outlined text-lg">edit</span></button>
+             <button class="p-2 hover:text-primary transition-colors" onclick="deleteHistoryQR('${qr.qrId}')"><span class="material-symbols-outlined text-lg">delete</span></button>
+          </td>
+        </tr>
+      `).join('');
+    } catch(e) { tbody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-primary/50">Connectivity Error</td></tr>`; }
   }
 
   async function deleteHistoryQR(id) {
-    if (!confirm('Are you sure you want to delete this QR code permanently?')) return;
-    try {
-      await window.API.deleteQR(id);
-      loadHistory();
-    } catch(e) { alert('Delete failed: ' + e.message); }
+    if(!confirm('Delete this QR?')) return;
+    try { await window.API.deleteQR(id); loadHistory(); } catch(e) { alert('Delete failed: ' + e.message); }
   }
 
   async function editQR(id) {
     try {
-      // Find QR in local history or fetch it
       const history = await window.API.getHistory();
       const qr = history.find(q => q.qrId === id);
-      if (!qr) return;
-      
+      if(!qr) return;
       currentQrId = qr.qrId;
-      
-      // Populate form based on type
       const type = qr.type || 'link';
-      document.querySelector(`[data-target="tab-${type}"]`).click();
-      
-      if (type === 'link') {
-        document.getElementById('linkInput').value = qr.content;
-        document.getElementById('linkName').value = qr.name || '';
-      } else if (type === 'text') {
-        document.getElementById('textInput').value = qr.content;
-        document.getElementById('textName').value = qr.name || '';
-      }
-      
-      // Load design options
-      if (qr.options) {
-        currentOptions = { ...currentOptions, ...qr.options };
-        // Update UI pickers
-        document.getElementById('qrColorInput').value = currentOptions.dotsOptions.color;
-        document.getElementById('bgColorInput').value = currentOptions.backgroundOptions.color;
-        document.getElementById('eyeColorInput').value = currentOptions.cornersSquareOptions.color;
-        
-        const pat = currentOptions.dotsOptions.type || 'square';
-        document.querySelector(`[data-pattern="${pat}"]`)?.click();
-      }
-      
+      document.querySelector(`[data-target="tab-${type}"]`)?.click();
+      if(type === 'link') { linkInput.value = qr.content; linkName.value = qr.name || ''; }
+      else if(type === 'text') { textInput.value = qr.content; textName.value = qr.name || ''; }
+      if(qr.options) currentOptions = { ...currentOptions, ...qr.options };
       currentContent = qr.content;
       updatePreview(false);
-      
-      // Scroll to generator
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      alert('QR loaded into generator. You can now modify and generate again.');
-      
-    } catch(e) { alert('Failed to load QR: ' + e.message); }
+    } catch(e) { alert('Load failed: ' + e.message); }
   }
 
-  // ── BULK GENERATION ────────────────────────────────────
-  let bulkRows = [];
-  let bulkZip  = null;
-
-  document.getElementById('bulkCsvInput').onchange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target.result;
-      const rows = text.trim().split('\n').map(r => r.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
-      if (rows.length < 2) { showBulkError('CSV is empty or missing headers.'); return; }
-      const headers = rows[0].map(h => h.toLowerCase());
-      const nameIdx = headers.indexOf('name');
-      const urlIdx  = headers.indexOf('url');
-      if (nameIdx === -1 || urlIdx === -1) { showBulkError('CSV must have "name" and "url" columns.'); return; }
-      
-      bulkRows = rows.slice(1).filter(r => r[urlIdx]).map(r => ({ name: r[nameIdx]||'QR', url: r[urlIdx] }));
-      if (!bulkRows.length) { showBulkError('No valid data rows found.'); return; }
-      
-      // Render Preview
-      const tbody = document.getElementById('bulkPreviewBody');
-      tbody.innerHTML = '';
-      bulkRows.slice(0, 5).forEach(r => {
-        tbody.innerHTML += `<tr><td style="padding:0.5rem">${r.name}</td><td style="padding:0.5rem; opacity:0.6">${r.url}</td></tr>`;
-      });
-      document.getElementById('bulkPreviewWrap').style.display = 'block';
-      document.getElementById('bulkCsvLabel').textContent = `✅ ${file.name} (${bulkRows.length} rows)`;
-      document.getElementById('bulkError').style.display = 'none';
-    };
-    reader.readAsText(file);
-  };
-
-  function showBulkError(msg) {
-    const err = document.getElementById('bulkError');
-    err.textContent = msg; err.style.display = 'block';
-    document.getElementById('bulkPreviewWrap').style.display = 'none';
-  }
-
-  document.getElementById('startBulkBtn').onclick = runBulkGeneration;
-
-  async function runBulkGeneration() {
-    document.getElementById('bulkStep1').style.display = 'none';
-    document.getElementById('bulkStep2').style.display = 'block';
-    
-    const zip = new JSZip();
-    const total = bulkRows.length;
-    const bar = document.getElementById('bulkProgressBar');
-    const lbl = document.getElementById('bulkProgressLabel');
-    const pct = document.getElementById('bulkProgressPct');
-
-    for (let i = 0; i < total; i++) {
-      const row = bulkRows[i];
-      // Use current design options for all bulk QRs
-      const bulkOpts = { ...currentOptions, width: 512, height: 512, margin: 20, data: row.url };
-      const q = new QRCodeStyling(bulkOpts);
-      
-      const blob = await new Promise(resolve => {
-        const tmp = document.createElement('div');
-        q.append(tmp);
-        setTimeout(async () => {
-          const b = await q.getRawData('png');
-          resolve(b);
-        }, 100);
-      });
-
-      if (blob) {
-        const safeName = row.name.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
-        zip.file(`${String(i+1).padStart(4,'0')}_${safeName}.png`, blob);
-      }
-
-      const p = Math.round(((i+1)/total)*100);
-      bar.style.width = p + '%';
-      lbl.textContent = `${i+1} / ${total}`;
-      pct.textContent = p + '%';
-      await new Promise(r => setTimeout(r, 10));
-    }
-
-    bulkZip = zip;
-    document.getElementById('downloadBulkZipBtn').style.display = 'block';
-    document.getElementById('bulkProgressLabel').textContent = `✅ ${total} QR Codes Ready!`;
-  }
-
-  document.getElementById('downloadBulkZipBtn').onclick = async () => {
-    if (!bulkZip) return;
-    const blob = await bulkZip.generateAsync({ type: 'blob' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.download = `nqr-bulk-${Date.now()}.zip`;
-    a.href = url; a.click();
-  };
-
-  // ── HASH NAVIGATION ─────────────────────────────────────
-  function handleHash() {
-    const hash = window.location.hash.substring(1);
-    if (hash === 'bulk') document.querySelector('[data-target="tab-bulk"]').click();
-    if (hash === 'settings') document.querySelector('[data-target="tab-settings"]').click();
-  }
-  window.addEventListener('hashchange', handleHash);
-  setTimeout(() => { handleHash(); loadUserSettings(); }, 300);
-
-  // ── MODIFIED DOWNLOAD LOGIC (Logical Fix) ───────────────
+  // ── DOWNLOAD LOGIC (Consolidated) ───────────────────────
   async function downloadQR(extension) {
-    if (!qrCode) return;
+    if(!qrCode) return;
     const downloadOptions = { ...currentOptions, width: 1000, height: 1000 };
     qrCode.update(downloadOptions);
 
@@ -1632,48 +1162,34 @@ tailwind.config = {
     const TOTAL_H      = 1000 + (frameEnabled ? FRAME_FOOT : 0) + WATERMARK_H;
     const TOTAL_W      = 1000 + FRAME_PAD * 2;
 
+    const blob = await qrCode.getRawData(extension === 'svg' ? 'svg' : 'png');
+    
     if (extension === 'png' || extension === 'pdf') {
-      const blob = await qrCode.getRawData('png');
-      const img  = new Image();
+      const img = new Image();
       img.src = URL.createObjectURL(blob);
-      img.onload = async () => {
+      img.onload = () => {
         const canvas = document.createElement('canvas');
-        const ctx    = canvas.getContext('2d');
-        canvas.width  = TOTAL_W;
-        canvas.height = TOTAL_H;
-
-        const bgColor = currentOptions.backgroundOptions.color || '#ffffff';
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+        const ctx = canvas.getContext('2d');
+        canvas.width = TOTAL_W; canvas.height = TOTAL_H;
+        ctx.fillStyle = currentOptions.backgroundOptions.color || '#ffffff';
+        ctx.fillRect(0,0, TOTAL_W, TOTAL_H);
+        
         if (frameEnabled) {
           ctx.fillStyle = frameColor;
-          const r = 32;
           ctx.beginPath();
-          ctx.moveTo(r, 0); ctx.lineTo(TOTAL_W - r, 0);
-          ctx.quadraticCurveTo(TOTAL_W, 0, TOTAL_W, r);
-          ctx.lineTo(TOTAL_W, TOTAL_H - WATERMARK_H - r);
-          ctx.quadraticCurveTo(TOTAL_W, TOTAL_H - WATERMARK_H, TOTAL_W - r, TOTAL_H - WATERMARK_H);
-          ctx.lineTo(r, TOTAL_H - WATERMARK_H);
-          ctx.quadraticCurveTo(0, TOTAL_H - WATERMARK_H, 0, TOTAL_H - WATERMARK_H - r);
-          ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
-          ctx.closePath(); ctx.fill();
-          ctx.drawImage(img, FRAME_PAD, FRAME_PAD / 2, 1000, 1000);
+          ctx.roundRect(0, 0, TOTAL_W, TOTAL_H - WATERMARK_H, 40);
+          ctx.fill();
+          ctx.drawImage(img, FRAME_PAD, FRAME_PAD/2, 1000, 1000);
           ctx.fillStyle = '#ffffff';
-          ctx.font = "bold 36px 'Manrope', 'Inter', sans-serif";
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillText(frameText.toUpperCase(), TOTAL_W / 2, 1000 + FRAME_PAD / 2 + 20);
+          ctx.font = "bold 36px 'Manrope'"; ctx.textAlign = 'center';
+          ctx.fillText(frameText.toUpperCase(), TOTAL_W/2, 1000 + FRAME_PAD/2 + 25);
         } else {
           ctx.drawImage(img, 0, 0);
         }
-
-        // Watermark
-        ctx.font = "bold 18px 'Inter', sans-serif";
-        ctx.fillStyle = currentOptions.dotsOptions.color || '#0F1636';
-        ctx.globalAlpha = 0.35;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(watermarkTxt, TOTAL_W / 2, TOTAL_H - WATERMARK_H / 2);
-        ctx.globalAlpha = 1;
+        
+        ctx.font = "bold 18px 'Inter'"; ctx.fillStyle = currentOptions.dotsOptions.color;
+        ctx.globalAlpha = 0.35; ctx.textAlign = 'center';
+        ctx.fillText(watermarkTxt, TOTAL_W/2, TOTAL_H - 30);
 
         if (extension === 'pdf') {
           const { jsPDF } = window.jspdf;
@@ -1682,55 +1198,68 @@ tailwind.config = {
           pdf.save(`nqr-${Date.now()}.pdf`);
         } else {
           const link = document.createElement('a');
-          link.download = `nqr-${Date.now()}.png`;
-          link.href = canvas.toDataURL('image/png');
-          link.click();
+          link.download = `nqr-${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
         }
         updatePreview(true);
       };
-      return;
-    }
-
-    if (extension === 'svg' || extension === 'eps') {
-      const blob = await qrCode.getRawData('svg');
-      const text = await blob.text();
-      const parser  = new DOMParser();
-      const svgDoc  = parser.parseFromString(text, 'image/svg+xml');
-      const svgElem = svgDoc.documentElement;
-      const wmH   = 60;
-      const width  = parseInt(svgElem.getAttribute('width'));
-      const height = parseInt(svgElem.getAttribute('height'));
-      svgElem.setAttribute('height', height + wmH);
-      svgElem.setAttribute('viewBox', `0 0 ${width} ${height + wmH}`);
-      const rect = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      rect.setAttribute('x', '0'); rect.setAttribute('y', height);
-      rect.setAttribute('width', width); rect.setAttribute('height', wmH);
-      rect.setAttribute('fill', currentOptions.backgroundOptions.color || '#ffffff');
-      svgElem.insertBefore(rect, svgElem.firstChild);
-      const textNode = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'text');
-      textNode.setAttribute('x', width / 2); textNode.setAttribute('y', height + wmH / 2);
-      textNode.setAttribute('text-anchor', 'middle'); textNode.setAttribute('dominant-baseline', 'middle');
-      textNode.setAttribute('font-family', "'Inter',sans-serif"); textNode.setAttribute('font-size', '20');
-      textNode.setAttribute('font-weight', 'bold'); textNode.setAttribute('fill', currentOptions.dotsOptions.color || '#0F1636');
-      textNode.setAttribute('opacity', '0.35'); textNode.textContent = watermarkTxt;
-      svgElem.appendChild(textNode);
-      const serializer  = new XMLSerializer();
-      const newSvgText  = serializer.serializeToString(svgDoc);
-
-      if (extension === 'eps') {
-        const epsContent = `%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 ${width} ${height + wmH}\n%%EndComments\n${newSvgText}\n%%EOF`;
-        const epsBlob = new Blob([epsContent], { type: 'application/postscript' });
-        const epsUrl  = URL.createObjectURL(epsBlob);
-        const link = document.createElement('a');
-        link.download = `nqr-${Date.now()}.eps`; link.href = epsUrl; link.click();
-      } else {
-        const newBlob = new Blob([newSvgText], { type: 'image/svg+xml' });
-        const link = document.createElement('a');
-        link.download = `nqr-${Date.now()}.svg`; link.href = URL.createObjectURL(newBlob); link.click();
-      }
-      updatePreview(true);
+    } else {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `nqr-${Date.now()}.svg`; link.href = url; link.click();
     }
   }
+
+  // ── BULK GENERATION ────────────────────────────────────
+  let bulkRows = [];
+  let bulkZip  = null;
+  document.getElementById('bulkCsvInput')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target.result;
+      const rows = text.trim().split('\n').map(r => r.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
+      const headers = rows[0].map(h => h.toLowerCase());
+      const nameIdx = headers.indexOf('name');
+      const urlIdx  = headers.indexOf('url');
+      if(nameIdx === -1 || urlIdx === -1) { alert('CSV missing name or url columns.'); return; }
+      bulkRows = rows.slice(1).filter(r => r[urlIdx]).map(r => ({ name: r[nameIdx]||'QR', url: r[urlIdx] }));
+      document.getElementById('bulkPreviewWrap').style.display = 'block';
+      document.getElementById('bulkCsvLabel').textContent = `✅ ${file.name} (${bulkRows.length} rows)`;
+    };
+    reader.readAsText(file);
+  });
+
+  document.getElementById('startBulkBtn')?.addEventListener('click', async () => {
+    document.getElementById('bulkStep1').style.display = 'none';
+    document.getElementById('bulkStep2').style.display = 'block';
+    const zip = new JSZip();
+    const bar = document.getElementById('bulkProgressBar');
+    for (let i = 0; i < bulkRows.length; i++) {
+        const row = bulkRows[i];
+        const q = new QRCodeStyling({ ...currentOptions, width: 512, height: 512, data: row.url });
+        const b = await q.getRawData('png');
+        zip.file(`${i+1}_${row.name.replace(/[^a-z0-9]/gi,'_')}.png`, b);
+        bar.style.width = Math.round(((i+1)/bulkRows.length)*100) + '%';
+    }
+    bulkZip = zip;
+    document.getElementById('downloadBulkZipBtn').style.display = 'block';
+  });
+
+  document.getElementById('downloadBulkZipBtn')?.addEventListener('click', async () => {
+    const b = await bulkZip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.download = `nqr-bulk-${Date.now()}.zip`; a.href = URL.createObjectURL(b); a.click();
+  });
+
+  // ── START ──────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    initQR();
+    setTimeout(() => {
+        loadUserSettings();
+        if(window.location.hash === '#settings') document.querySelector('[data-target="tab-settings"]')?.click();
+    }, 500);
+  });
 </script>
 </body>
 </html>
