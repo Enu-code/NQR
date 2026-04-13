@@ -753,13 +753,32 @@
       }
 
       #block-2 {
-        left: 4%;
-        transform: none;
-        text-align: left;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: 92%;
+        padding: 2.5rem 1rem;
+        background: radial-gradient(circle at center, rgba(6, 8, 16, 0.98) 0%, rgba(6, 8, 16, 0.8) 60%, transparent 100%);
+      }
+
+      .text-block {
+        max-width: 92%;
+      }
+
+      .powered-by {
+        letter-spacing: 0.15em;
+        font-size: 0.7rem;
       }
 
       .text-headline {
-        font-size: clamp(1.8rem, 7vw, 2.6rem);
+        font-size: clamp(1.8rem, 7vw, 2.4rem);
+        margin-bottom: 0.5rem;
+      }
+
+      .text-body {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        max-width: 100%;
       }
 
       .qtype-grid,
