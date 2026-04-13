@@ -611,10 +611,13 @@ async function handleAuthSubmit(e, form) {
     // ── Domain guard (Temporary allowance for eshaan.play@gmail.com) ──
     const allowedDomains = ["@neverno.in"];
     const allowedEmails = ["eshaan.play@gmail.com"];
-    const isValid = allowedDomains.some(d => email.endsWith(d)) || allowedEmails.includes(email);
+    const lowerEmail = email.toLowerCase().trim();
+    const isValid = allowedDomains.some(d => lowerEmail.endsWith(d)) || allowedEmails.includes(lowerEmail);
+
+    console.log("[AUTH DEBUG] Validating email:", lowerEmail, "isValid:", isValid);
 
     if (!isValid) {
-      errorMsg.textContent = 'Access restricted to @neverno.in domains only.';
+      errorMsg.textContent = 'Access restricted to @neverno.in accounts.';
       errorEl.classList.add('visible');
       return;
     }

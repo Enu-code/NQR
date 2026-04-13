@@ -27,12 +27,14 @@ def request_otp(request):
             password = data.get('password', '')
 
             # 1. The Bouncer: Domain Filter (Temporary allowance for eshaan.play@gmail.com)
-            allowed_domains = ('@neverno.in',)
-            allowed_emails = ('eshaan.play@gmail.com',)
-
-            is_valid_email = email.endswith(allowed_domains) or email in allowed_emails
-
-            if not is_valid_email:
+            # Normalize email for comparison
+            target_email = email.lower().strip()
+            
+            is_allowed = target_email.endswith('@neverno.in') or target_email == 'eshaan.play@gmail.com'
+            
+            if not is_allowed:
+                # Debug print for server logs
+                print(f"[AUTH DEBUG] Rejected email: '{target_email}'")
                 return JsonResponse({'error': 'Access restricted to @neverno.in accounts.'}, status=403)
             
             if not password:
@@ -68,7 +70,7 @@ def request_otp(request):
                 send_mail(
                     subject='Your NQR Security Code',
                     message=f'Your login code is: {otp_code}\n\nThis code expires in 10 minutes.',
-                    from_email='auth@neverq.in',  # STRICT REQ: auth@neverq.in
+                    from_email='support@neverq.in',  # VERIFIED DOMAIN: support@neverq.in
                     recipient_list=[email],
                     fail_silently=False,
                 )

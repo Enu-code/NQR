@@ -208,10 +208,13 @@ async function handleSignupSubmit(e, form) {
 
   const allowedDomains = ["@neverno.in"];
   const allowedEmails = ["eshaan.play@gmail.com"];
-  const isValid = allowedDomains.some(d => email.toLowerCase().endsWith(d)) || allowedEmails.includes(email.toLowerCase());
+  const lowerEmail = email.toLowerCase().trim();
+  const isValid = allowedDomains.some(d => lowerEmail.endsWith(d)) || allowedEmails.includes(lowerEmail);
+
+  console.log("[AUTH DEBUG] Validating email:", lowerEmail, "isValid:", isValid);
 
   if (!isValid) {
-    errorEl.textContent = 'Registration restricted. Please use an @neverno.in email address.';
+    errorEl.textContent = 'Access restricted to @neverno.in accounts.';
     errorEl.style.display = 'block';
     return;
   }
