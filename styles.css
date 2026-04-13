@@ -27,10 +27,11 @@
 
   /* ── GRADIENTS ── */
   --g-bg:           radial-gradient(ellipse 100% 80% at 50% -20%, #0D1225 0%, #080E22 45%, #05070A 100%);
-  --g-card:         linear-gradient(135deg, rgba(8,14,34,0.6) 0%, rgba(5,7,10,0.8) 100%);
+  --g-card:         linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
   --g-red:          linear-gradient(135deg, #D90429 0%, #9a0320 100%);
   --g-blue:         linear-gradient(135deg, #080E22 0%, #0F1636 100%);
   --g-hero:         radial-gradient(ellipse 80% 60% at 50% 50%, var(--c-red-glow) 0%, transparent 70%);
+  --g-glass:        linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
 
   /* ── TYPOGRAPHY ── */
   --font-display:   'Syne', sans-serif;
@@ -350,6 +351,26 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 
 .card-inner { padding: var(--sp-xl); }
 .card-inner--lg { padding: var(--sp-2xl); }
+
+/* ── PREMIUM UTILITIES ── */
+.premium-glass {
+  background: var(--g-glass);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+}
+
+.premium-border { border: 1px solid rgba(255,255,255,0.1); }
+
+.glow-text-red {
+  text-shadow: 0 0 15px rgba(217,4,41,0.4);
+}
+
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
 
 /* ────────────────────────────────────────────
    FORM ELEMENTS

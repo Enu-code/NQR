@@ -3,37 +3,91 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>404 Page Not Found — NQR</title>
-<link rel="stylesheet" href="styles.css"/>
+<title>404 — Node Not Found — NQR</title>
+<link rel="stylesheet" href="styles.css?v=6"/>
+<link rel="stylesheet" href="home.css?v=6"/>
 <style>
-  .error-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    text-align: center;
-    padding: var(--sp-xl);
-    background: var(--c-navy-deep);
-    color: white;
-  }
-  .error-code {
-    font-size: 8rem;
-    font-weight: 800;
-    line-height: 1;
-    background: var(--g-red);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: var(--sp-md);
-  }
+/* ── 404 Specific Styling ── */
+.error-page {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--g-bg);
+  position: relative;
+  overflow: hidden;
+}
+.error-page::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.2;
+}
+.error-glow {
+  position: absolute;
+  width: 60vw; height: 60vh;
+  background: radial-gradient(circle, var(--c-red-glow) 0%, transparent 70%);
+  z-index: 0;
+  opacity: 0.5;
+}
+
+.error-content {
+  position: relative;
+  z-index: 10;
+  padding: var(--sp-2xl);
+}
+
+.error-code {
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 20vw, 12rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: rgba(255,255,255,0.03);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+}
+
+.error-qr-frame {
+  width: 120px; height: 120px;
+  margin: 0 auto var(--sp-xl);
+  border: 2px solid var(--c-red);
+  padding: 10px;
+  border-radius: var(--r-xl);
+  position: relative;
+  animation: errorPulse 2s infinite;
+}
+@keyframes errorPulse {
+  0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 20px var(--c-red-soft); }
+  50% { transform: scale(1.05); opacity: 0.7; box-shadow: 0 0 40px var(--c-red-glow); }
+}
 </style>
 </head>
 <body class="error-page">
+
+<div class="error-glow"></div>
+
+<div class="error-content">
   <div class="error-code">404</div>
-  <h1 class="t-h2">Lost in the grid?</h1>
-  <p class="t-large text-muted mt-md" style="max-width: 400px; margin-bottom: var(--sp-xl)">
-    The page you are looking for doesn't exist or has been moved to a new encrypted location.
-  </p>
-  <a href="index.html" class="btn btn--primary btn--lg">Return Home</a>
+  
+  <div class="error-qr-frame">
+     <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M3 3h7v7H3V3zM14 3h7v7h-7V3zM3 14h7v7H3v-7zM14 14h3M21 14h.01M14 17h.01M17 17h3v3h-3v-3zM14 20h3M21 17v3h-3"/>
+     </svg>
+  </div>
+
+  <div class="section-badge mb-sm">Node Connection Failure</div>
+  <h1 class="t-h1 mb-md">This destination <br/><span class="gradient-text">doesn't exist.</span></h1>
+  <p class="t-large text-muted mb-xl" style="max-width: 480px; margin-left: auto; margin-right: auto;">The QR node you're looking for was either decommissioned or never provisioned. Let's get you back to the network.</p>
+  
+  <div class="flex gap-md justify-center">
+    <a href="index.html" class="btn btn--primary">Return Home</a>
+    <a href="javascript:history.back()" class="btn btn--secondary">Go Back</a>
+  </div>
+</div>
+
 </body>
 </html>

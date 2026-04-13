@@ -4,8 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Security — NQR</title>
-<link rel="stylesheet" href="styles.css"/>
-<link rel="stylesheet" href="home.css"/>
+<link rel="stylesheet" href="styles.css?v=6"/>
+<link rel="stylesheet" href="home.css?v=6"/>
 <style>
 /* ── Security Page Specific ── */
 .sec-hero {
@@ -15,11 +15,17 @@
   overflow: hidden;
   background: var(--g-bg);
 }
+.sec-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.3;
+}
 .sec-hero::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(217, 4, 41, 0.05) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(217, 4, 41, 0.1) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -31,32 +37,21 @@
 }
 
 .sec-feature-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-xl);
-  padding: var(--sp-2xl);
+  background: var(--g-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-2xl);
+  padding: var(--sp-3xl);
   transition: all var(--dur-base) var(--ease-out);
   position: relative;
   overflow: hidden;
 }
 
-.sec-feature-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--c-red), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s var(--ease-out);
-}
-
 .sec-feature-card:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--c-border-2);
+  border-color: rgba(217, 4, 41, 0.3);
   transform: translateY(-8px);
-}
-
-.sec-feature-card:hover::before {
-  transform: translateX(100%);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(217, 4, 41, 0.05);
 }
 
 .sec-icon {
@@ -101,7 +96,7 @@
   </div>
 </nav>
 
-<section class="sec-hero">
+<section class="sec-hero bg-dot-grid">
   <div class="container container--narrow">
     <div class="section-badge anim-fade-up">Enterprise-Grade Trust</div>
     <h1 class="t-hero mt-md anim-fade-up anim-fade-up--d1">Secure by design,<br/><span class="gradient-text">private</span> by default.</h1>
@@ -155,10 +150,10 @@
 
 <section class="section">
   <div class="container">
-    <div class="card card--static text-center" style="padding: var(--sp-3xl);">
-      <h2 class="t-h1">Need a specialized setup?</h2>
-      <p class="t-large text-muted mt-md">For enterprise clients requiring dedicated infrastructure, on-premise solutions, or custom security audits.</p>
-      <div class="flex justify-center mt-xl">
+    <div class="premium-glass p-xl rounded-3xl text-center glow-text-red">
+      <h2 class="t-h1 mb-md">Need a specialized setup?</h2>
+      <p class="t-large text-muted mb-xl">For enterprise clients requiring dedicated infrastructure, on-premise solutions, or custom security audits.</p>
+      <div class="flex justify-center">
         <a href="contact-support.html" class="btn btn--primary btn--lg">Talk to Security Team</a>
       </div>
     </div>
@@ -173,40 +168,41 @@
           <div class="nav__logo-mark">
             <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
           </div>
-          <div class="nav__logo-text">NQR</div>
+          <div>
+            <div class="nav__logo-text">NQR</div>
+            <div class="nav__logo-powered">Powered by Neverno</div>
+          </div>
         </a>
         <p>Building the future of secure, beautiful QR sharing. Powered by Neverno.</p>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Product</h4>
+      <div>
+        <div class="footer__col-title">Product</div>
         <ul class="footer__links">
           <li><a href="app-generator.html" class="footer__link">Generator</a></li>
           <li><a href="features.html" class="footer__link">Features</a></li>
           <li><a href="security.html" class="footer__link">Security</a></li>
         </ul>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Solutions</h4>
+      <div>
+        <div class="footer__col-title">Solutions</div>
         <ul class="footer__links">
           <li><a href="usecases.html" class="footer__link">Use Cases</a></li>
           <li><a href="security.html" class="footer__link">Security</a></li>
           <li><a href="faq.html" class="footer__link">Help Center</a></li>
         </ul>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Social</h4>
+      <div>
+        <div class="footer__col-title">Social</div>
         <ul class="footer__links">
           <li><a href="#" class="footer__link">Twitter</a></li>
           <li><a href="#" class="footer__link">LinkedIn</a></li>
-          <li><a href="#" class="footer__link">Instagram</a></li>
         </ul>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Legal</h4>
+      <div>
+        <div class="footer__col-title">Legal</div>
         <ul class="footer__links">
-          <li><a href="#" class="footer__link">Privacy</a></li>
-          <li><a href="#" class="footer__link">Terms</a></li>
-          <li><a href="#" class="footer__link">Security</a></li>
+          <li><a href="privacy-policy.html" class="footer__link">Privacy</a></li>
+          <li><a href="terms-of-service.html" class="footer__link">Terms</a></li>
         </ul>
       </div>
     </div>

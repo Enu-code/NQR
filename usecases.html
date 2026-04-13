@@ -4,8 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Solutions — NQR</title>
-<link rel="stylesheet" href="styles.css"/>
-<link rel="stylesheet" href="home.css"/>
+<link rel="stylesheet" href="styles.css?v=6"/>
+<link rel="stylesheet" href="home.css?v=6"/>
 <script src="config.js"></script>
 <script src="backend.js"></script>
 <style>
@@ -18,9 +18,15 @@
   background: var(--g-bg);
 }
 .sol-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.3;
+}
+.sol-hero::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0;
   background: radial-gradient(circle at 10% 20%, rgba(217, 4, 41, 0.08) 0%, transparent 40%),
               radial-gradient(circle at 90% 80%, rgba(217, 4, 41, 0.05) 0%, transparent 40%);
   pointer-events: none;
@@ -29,23 +35,24 @@
 .sol-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--sp-xl);
+  gap: var(--sp-2xl);
   margin-top: var(--sp-2xl);
 }
 
 .sol-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--c-border);
+  background: var(--g-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--r-2xl);
   padding: var(--sp-3xl);
   transition: all var(--dur-base) var(--ease-out);
 }
 
 .sol-card:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--c-border-2);
+  border-color: rgba(217, 4, 41, 0.3);
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(217, 4, 41, 0.05);
 }
 
 .sol-category {
@@ -109,7 +116,7 @@
   </div>
 </nav>
 
-<section class="sol-hero">
+<section class="sol-hero bg-dot-grid">
   <div class="container container--narrow">
     <div class="section-badge anim-fade-up">Industry Solutions</div>
     <h1 class="t-hero mt-md anim-fade-up anim-fade-up--d1">One tool.<br/>Limitless <span class="gradient-text">workflows.</span></h1>
@@ -122,7 +129,7 @@
     <div class="sol-grid">
       
       <!-- Corporate -->
-      <div class="sol-card anim-fade-up anim-fade-up--d3">
+      <div class="sol-card anim-fade-up anim-fade-up--d3" id="corporate">
         <div class="sol-category">Corporate</div>
         <h2 class="t-h1 mb-md">Modern Operations</h2>
         <p class="t-body text-muted">Eliminate friction in the workplace by turning static documentation into interactive, scannable nodes.</p>
@@ -135,7 +142,7 @@
       </div>
 
       <!-- Events -->
-      <div class="sol-card anim-fade-up anim-fade-up--d4">
+      <div class="sol-card anim-fade-up anim-fade-up--d4" id="events">
         <div class="sol-category">Events</div>
         <h2 class="t-h1 mb-md">Dynamic Experiences</h2>
         <p class="t-body text-muted">Bridge the gap between your physical event space and digital content with real-time updates.</p>
@@ -148,7 +155,7 @@
       </div>
 
       <!-- Retail -->
-      <div class="sol-card anim-fade-up anim-fade-up--d5">
+      <div class="sol-card anim-fade-up anim-fade-up--d5" id="restaurants">
         <div class="sol-category">Retail & Hospitality</div>
         <h2 class="t-h1 mb-md">Customer Engagement</h2>
         <p class="t-body text-muted">Turn every physical touchpoint into a digital conversion opportunity for your brand.</p>
@@ -161,8 +168,8 @@
       </div>
 
       <!-- Logistics -->
-      <div class="sol-card anim-fade-up anim-fade-up--d6">
-        <div class="sol-category">Industrial</div>
+      <div class="sol-card anim-fade-up anim-fade-up--d6" id="sales">
+        <div class="sol-category">Industrial & Sales</div>
         <h2 class="t-h1 mb-md">Precision Tracking</h2>
         <p class="t-body text-muted">Powerful asset tracking and equipment management for logistics and field teams.</p>
         <div class="sol-list">
@@ -179,9 +186,11 @@
 
 <section class="section">
   <div class="container container--narrow text-center">
-    <h2 class="t-h1 mb-md">Custom Solution?</h2>
-    <p class="t-large text-muted mb-xl">Our team can help you build a bespoke QR workflow for your specific industrial or enterprise needs.</p>
-    <a href="contact-support.html" class="btn btn--primary btn--lg">Consult an Expert</a>
+    <div class="premium-glass p-xl rounded-3xl glow-text-red">
+      <h2 class="t-h1 mb-md">Custom Solution?</h2>
+      <p class="t-large text-muted mb-xl">Our team can help you build a bespoke QR workflow for your specific industrial or enterprise needs.</p>
+      <a href="contact-support.html" class="btn btn--primary btn--lg">Consult an Expert</a>
+    </div>
   </div>
 </section>
 
@@ -193,40 +202,41 @@
           <div class="nav__logo-mark">
             <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
           </div>
-          <div class="nav__logo-text">NQR</div>
+          <div>
+            <div class="nav__logo-text">NQR</div>
+            <div class="nav__logo-powered">Powered by Neverno</div>
+          </div>
         </a>
         <p>Building the future of secure, beautiful QR sharing. Powered by Neverno.</p>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Product</h4>
+      <div>
+        <div class="footer__col-title">Product</div>
         <ul class="footer__links">
           <li><a href="app-generator.html" class="footer__link">Generator</a></li>
           <li><a href="features.html" class="footer__link">Features</a></li>
-          <li><a href="usecases.html" class="footer__link">Use Cases</a></li>
+          <li><a href="security.html" class="footer__link">Security</a></li>
         </ul>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Solutions</h4>
+      <div>
+        <div class="footer__col-title">Solutions</div>
         <ul class="footer__links">
           <li><a href="usecases.html" class="footer__link">Use Cases</a></li>
           <li><a href="security.html" class="footer__link">Security</a></li>
           <li><a href="faq.html" class="footer__link">Help Center</a></li>
         </ul>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Social</h4>
+      <div>
+        <div class="footer__col-title">Social</div>
         <ul class="footer__links">
           <li><a href="#" class="footer__link">Twitter</a></li>
           <li><a href="#" class="footer__link">LinkedIn</a></li>
-          <li><a href="#" class="footer__link">Instagram</a></li>
         </ul>
       </div>
-      <div class="footer__col">
-        <h4 class="footer__col-title">Legal</h4>
+      <div>
+        <div class="footer__col-title">Legal</div>
         <ul class="footer__links">
-          <li><a href="#" class="footer__link">Privacy</a></li>
-          <li><a href="#" class="footer__link">Terms</a></li>
-          <li><a href="#" class="footer__link">Security</a></li>
+          <li><a href="privacy-policy.html" class="footer__link">Privacy</a></li>
+          <li><a href="terms-of-service.html" class="footer__link">Terms</a></li>
         </ul>
       </div>
     </div>

@@ -4,73 +4,70 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Help Center — NQR</title>
-<link rel="stylesheet" href="styles.css"/>
-<link rel="stylesheet" href="home.css"/>
+<link rel="stylesheet" href="styles.css?v=6"/>
+<link rel="stylesheet" href="home.css?v=6"/>
 <style>
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .animate-block {
-    opacity: 0;
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .animate-d1 { animation-delay: 0.1s; }
-  .animate-d2 { animation-delay: 0.2s; }
-  
-  .help-card {
-    background: rgba(26, 26, 26, 0.6);
-    backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    padding: 2.5rem;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    text-align: center;
-  }
-  
-  .help-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
+/* ── Help Center Specific Styling ── */
+.help-hero {
+  padding: calc(var(--sp-4xl) * 1.5) 0 var(--sp-2xl);
+  text-align: center;
+  position: relative;
+  background: var(--g-bg);
+}
+.help-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.2;
+}
 
-  .help-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    border-color: rgba(255, 255, 255, 0.15);
-  }
-  
-  .help-card:hover::before {
-    opacity: 1;
-  }
-  
-  .help-card--red:hover {
-    box-shadow: 0 20px 40px -10px rgba(217, 4, 41, 0.15);
-  }
-  
-  .help-card--blue:hover {
-    box-shadow: 0 20px 40px -10px rgba(11, 87, 208, 0.15);
-  }
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-xl);
+  margin-top: -40px;
+  margin-bottom: var(--sp-4xl);
+}
 
-  .help-card-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
-    margin-bottom: 1.5rem;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  
-  .help-card:hover .help-card-icon {
-    transform: scale(1.15) rotate(-5deg);
-  }
+.help-card {
+  background: var(--g-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-2xl);
+  padding: var(--sp-3xl);
+  text-align: center;
+  transition: all var(--dur-base) var(--ease-out);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.help-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+
+.help-icon-box {
+  width: 72px; height: 72px;
+  background: var(--c-red-soft);
+  color: var(--c-red);
+  border-radius: var(--r-xl);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--sp-xl);
+  transition: transform 0.4s var(--ease-out);
+}
+
+.help-card:hover .help-icon-box {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+@media (max-width: 768px) {
+  .help-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -79,59 +76,104 @@
   <div class="nav__inner">
     <a href="index.html" class="nav__logo">
       <div class="nav__logo-mark">
-        <img src="assets/logo.png" alt="NQR Logo" style="width:100%;height:100%;border-radius:var(--r-sm);object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+        <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
       </div>
       <div>
         <div class="nav__logo-text">NQR</div>
+        <div class="nav__logo-powered">Powered by Neverno</div>
       </div>
     </a>
     <ul class="nav__links">
       <li><a href="app-generator.html" class="nav__link">Generator</a></li>
       <li><a href="features.html" class="nav__link">Features</a></li>
       <li><a href="usecases.html" class="nav__link">Solutions</a></li>
+      <li><a href="security.html" class="nav__link">Security</a></li>
     </ul>
-    <div class="nav__cta">
+    <div class="nav__cta hide-mobile">
       <a href="user-login.html" class="btn btn--ghost btn--sm">Sign In</a>
+      <a href="user-login.html" class="btn btn--primary btn--sm">Get Started</a>
     </div>
   </div>
 </nav>
 
-<section class="section" style="padding-top:140px">
-  <div class="container container--narrow text-center">
-    <div class="section-badge anim-fade-up">Support</div>
-    <h1 class="t-hero mt-md anim-fade-up anim-fade-up--d1">Help <span class="gradient-text">Center</span></h1>
-    <p class="t-large text-muted mt-lg anim-fade-up anim-fade-up--d2">Find answers, guides and resources to make the most out of NQR.</p>
+<section class="help-hero bg-dot-grid">
+  <div class="container container--narrow">
+    <div class="section-badge anim-fade-up">Support Portal</div>
+    <h1 class="t-hero mt-md anim-fade-up anim-fade-up--d1">Help <span class="gradient-text">Center.</span></h1>
+    <p class="t-large text-muted mt-lg anim-fade-up anim-fade-up--d2">How can the NQR technical team assist you today?</p>
   </div>
 </section>
 
 <section class="section pt-0">
   <div class="container container--narrow">
-    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--sp-md);">
+    <div class="help-grid">
       
-      <div class="help-card help-card--red animate-block animate-d1" onclick="window.location.href='faq.html'">
-        <div class="help-card-icon icon-wrap--red" style="background: rgba(217,4,41,0.1); color: #d90429;">
-          <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <div class="help-card anim-fade-up anim-fade-up--d3" onclick="window.location.href='faq.html'">
+        <div class="help-icon-box">
+          <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
-        <h3 class="t-h3 mb-sm">FAQs</h3>
-        <p class="t-body text-muted">Browse our most frequently asked questions and guides.</p>
+        <h3 class="t-h2 mb-sm">Browse Knowledge</h3>
+        <p class="t-body text-muted">Explore our extensive documentation, step-by-step guides, and technical FAQs.</p>
       </div>
-      
-      <div class="help-card help-card--blue animate-block animate-d2" onclick="window.location.href='contact-support.html'">
-        <div class="help-card-icon icon-wrap--blue" style="background: rgba(11,87,208,0.1); color: #4b8df8;">
-          <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+
+      <div class="help-card anim-fade-up anim-fade-up--d4" onclick="window.location.href='contact-support.html'">
+        <div class="help-icon-box">
+          <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
         </div>
-        <h3 class="t-h3 mb-sm">Contact Support</h3>
-        <p class="t-body text-muted">Get in touch with our dedicated technical support team.</p>
+        <h3 class="t-h2 mb-sm">Contact Support</h3>
+        <p class="t-body text-muted">Submit a direct inquiry to our engineering team for specialized technical assistance.</p>
       </div>
 
     </div>
   </div>
 </section>
 
-<footer class="footer mt-xl" style="border-top:1px solid var(--c-border)">
-  <div class="container text-center">
-    <div class="nav__logo-text mb-sm">NQR</div>
-    <p class="t-small text-muted">© 2026 NQR. All rights reserved by NEVERNO.</p>
+<footer class="footer">
+  <div class="container container--wide">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="nav__logo">
+          <div class="nav__logo-mark">
+            <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+          </div>
+          <div>
+            <div class="nav__logo-text">NQR</div>
+            <div class="nav__logo-powered">Powered by Neverno</div>
+          </div>
+        </a>
+        <p>Building the future of secure, beautiful QR sharing. Powered by Neverno.</p>
+      </div>
+      <div>
+        <div class="footer__col-title">Product</div>
+        <ul class="footer__links">
+          <li><a href="app-generator.html" class="footer__link">Generator</a></li>
+          <li><a href="features.html" class="footer__link">Features</a></li>
+          <li><a href="security.html" class="footer__link">Security</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Solutions</div>
+        <ul class="footer__links">
+          <li><a href="usecases.html" class="footer__link">Use Cases</a></li>
+          <li><a href="security.html" class="footer__link">Security</a></li>
+          <li><a href="faq.html" class="footer__link">Help Center</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Legal</div>
+        <ul class="footer__links">
+          <li><a href="privacy-policy.html" class="footer__link">Privacy</a></li>
+          <li><a href="terms-of-service.html" class="footer__link">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© 2026 NQR. All rights reserved by NEVERNO.</p>
+      <div class="footer__powered">
+        <div class="footer__powered-dot"></div>
+        <span>Distributed by Neverno Digital</span>
+      </div>
+    </div>
   </div>
 </footer>
 

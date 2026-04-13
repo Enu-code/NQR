@@ -4,86 +4,222 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>FAQ — NQR</title>
-<link rel="stylesheet" href="styles.css"/>
-<link rel="stylesheet" href="home.css"/>
+<link rel="stylesheet" href="styles.css?v=6"/>
+<link rel="stylesheet" href="home.css?v=6"/>
+<style>
+/* ── FAQ Specific Styling ── */
+.faq-hero {
+  padding: calc(var(--sp-4xl) * 1.5) 0 var(--sp-2xl);
+  text-align: center;
+  position: relative;
+  background: var(--g-bg);
+}
+.faq-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.2;
+}
+
+.faq-card {
+  margin-top: -40px;
+  margin-bottom: var(--sp-3xl);
+  position: relative;
+  z-index: 10;
+}
+
+.faq-item {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: var(--sp-lg) 0;
+}
+.faq-item:last-child { border-bottom: none; }
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.faq-question h3 { margin-bottom: 0; }
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s var(--ease-out), padding 0.4s var(--ease-out);
+  transition-delay: 0s;
+}
+
+details[open] .faq-answer {
+  max-height: 500px;
+  padding-top: var(--sp-md);
+}
+
+details { outline: none; }
+summary { list-style: none; outline: none; }
+summary::-webkit-details-marker { display: none; }
+
+.faq-chevron {
+  transition: transform 0.3s var(--ease-out);
+  color: var(--c-red);
+}
+details[open] .faq-chevron { transform: rotate(180deg); }
+</style>
 </head>
 <body>
 
 <nav class="nav" id="mainNav">
   <div class="nav__inner">
     <a href="index.html" class="nav__logo">
-      <div class="nav__logo-mark">N</div>
+      <div class="nav__logo-mark">
+        <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+      </div>
       <div>
         <div class="nav__logo-text">NQR</div>
+        <div class="nav__logo-powered">Powered by Neverno</div>
       </div>
     </a>
     <ul class="nav__links">
       <li><a href="app-generator.html" class="nav__link">Generator</a></li>
       <li><a href="features.html" class="nav__link">Features</a></li>
       <li><a href="usecases.html" class="nav__link">Solutions</a></li>
+      <li><a href="security.html" class="nav__link">Security</a></li>
     </ul>
-    <div class="nav__cta">
+    <div class="nav__cta hide-mobile">
       <a href="user-login.html" class="btn btn--ghost btn--sm">Sign In</a>
+      <a href="user-login.html" class="btn btn--primary btn--sm">Get Started</a>
     </div>
   </div>
 </nav>
 
-<section class="section" style="padding-top:140px">
-  <div class="container container--narrow text-center">
-    <div class="section-badge anim-fade-up">Support</div>
+<section class="faq-hero bg-dot-grid">
+  <div class="container container--narrow">
+    <div class="section-badge anim-fade-up">Support Center</div>
     <h1 class="t-hero mt-md anim-fade-up anim-fade-up--d1">How can we <span class="gradient-text">help?</span></h1>
-    <p class="t-large text-muted mt-lg anim-fade-up anim-fade-up--d2">Browse our most frequently asked questions below or contact support if you need further assistance.</p>
+    <p class="t-large text-muted mt-lg anim-fade-up anim-fade-up--d2">Browse our most frequently asked questions or contact our engineering team directly.</p>
   </div>
 </section>
 
 <section class="section pt-0">
   <div class="container container--narrow">
-    <div class="card card--static p-xl">
+    <div class="faq-card premium-glass p-xl rounded-3xl anim-fade-up anim-fade-up--d3">
       
       <!-- FAQ 1 -->
-      <div class="border-b border-c-border pb-md mb-md">
-        <h3 class="t-h3 mb-sm">What is the difference between Static and Dynamic QRs?</h3>
-        <p class="t-body text-muted">A Static QR has the destination (URL, text, contact info) hardcoded directly into the pattern of the QR code itself. It cannot be changed once generated. A Dynamic QR routes via our shortlink (e.g., neverq.in/go/xxx), meaning you can log into your dashboard and change where the QR points at any time, even after you've printed it.</p>
-      </div>
-      
+      <details class="faq-item" open>
+        <summary class="faq-question">
+          <h3 class="t-h3">Static vs Dynamic QRs?</h3>
+          <span class="material-symbols-outlined faq-chevron">expand_more</span>
+        </summary>
+        <div class="faq-answer">
+          <p class="t-body text-muted">A Static QR has the data encoded directly into the pattern and cannot be edited. A Dynamic QR routes via NQR shortlinks, allowing you to update destination URLs, files, or contact info in real-time from your dashboard without ever needing to reprint the code.</p>
+        </div>
+      </details>
+
       <!-- FAQ 2 -->
-      <div class="border-b border-c-border pb-md mb-md">
-        <h3 class="t-h3 mb-sm">Are there scan limits on the free plan?</h3>
-        <p class="t-body text-muted">No. Neither the Free nor the Pro plans have hard limits on the number of times your QR code can be scanned. However, analytics tracking on the free plan is limited to the last 30 days of data.</p>
-      </div>
+      <details class="faq-item">
+        <summary class="faq-question">
+          <h3 class="t-h3">Are there any scan limits?</h3>
+          <span class="material-symbols-outlined faq-chevron">expand_more</span>
+        </summary>
+        <div class="faq-answer">
+          <p class="t-body text-muted">NQR provides unlimited scans across all plans. We do not throttle your traffic or charge for high-volume scan activity. Business and Enterprise plans include deeper historical analytics for high-volume campaigns.</p>
+        </div>
+      </details>
 
       <!-- FAQ 3 -->
-      <div class="border-b border-c-border pb-md mb-md">
-        <h3 class="t-h3 mb-sm">How secure are File Transfer QRs?</h3>
-        <p class="t-body text-muted">Very secure. Uploaded files are encrypted at rest. When generating a File QR, you can optionally set a password requirement for download, and you can configure the file to automatically delete itself after a certain number of hours or scans.</p>
-      </div>
+      <details class="faq-item">
+        <summary class="faq-question">
+          <h3 class="t-h3">How secure are File QRs?</h3>
+          <span class="material-symbols-outlined faq-chevron">expand_more</span>
+        </summary>
+        <div class="faq-answer">
+          <p class="t-body text-muted">Uploaded files are encrypted at rest using AES-256. You can secure downloads with a PIN/Password, set expiration dates, or enforce self-destruct rules (e.g., delete after 100 scans). All transfers occur over encrypted TLS 1.3 channels.</p>
+        </div>
+      </details>
 
       <!-- FAQ 4 -->
-      <div class="border-b border-c-border pb-md mb-md">
-        <h3 class="t-h3 mb-sm">Can I remove the "Powered by Neverno" branding?</h3>
-        <p class="t-body text-muted">Yes. White-labeling the download landing pages, removing NQR branding, and using custom domains (e.g., qr.yourcompany.com) are features available on our Business plan.</p>
-      </div>
+      <details class="faq-item">
+        <summary class="faq-question">
+          <h3 class="t-h3">Can I use my own domain?</h3>
+          <span class="material-symbols-outlined faq-chevron">expand_more</span>
+        </summary>
+        <div class="faq-answer">
+          <p class="t-body text-muted">Yes. Business plan users can connect their own branded hostname (e.g., qr.yourbrand.com) for a completely white-labeled experience. Custom domains help build user trust and keep your brand front-and-center.</p>
+        </div>
+      </details>
 
       <!-- FAQ 5 -->
-      <div class="pb-xs">
-        <h3 class="t-h3 mb-sm">What happens if my subscription expires?</h3>
-        <p class="t-body text-muted">Your static QR codes will continue to function normally forever. Any dynamic QR codes or hosted files linked to your account will be temporarily paused and will show a placeholder page until the subscription is reactivated.</p>
-      </div>
+      <details class="faq-item">
+        <summary class="faq-question">
+          <h3 class="t-h3">What is "Neverno Powered"?</h3>
+          <span class="material-symbols-outlined faq-chevron">expand_more</span>
+        </summary>
+        <div class="faq-answer">
+          <p class="t-body text-muted">NQR is a product of the Neverno Digital ecosystem. Our platform utilizes Neverno's global node network to ensure extremely low-latency redirects and enterprise-grade infrastructure reliability worldwide.</p>
+        </div>
+      </details>
 
     </div>
 
     <div class="text-center mt-xl">
-      <p class="t-body mb-md">Still have questions?</p>
-      <a href="contact-support.html" class="btn btn--secondary">Contact Support</a>
+      <div class="premium-glass p-lg rounded-2xl flex items-center justify-between gap-xl">
+        <div class="text-left">
+          <p class="t-h3 mb-xs">Still have questions?</p>
+          <p class="t-small text-muted">Our dedicated support team is ready to assist you.</p>
+        </div>
+        <a href="contact-support.html" class="btn btn--primary">Contact Support</a>
+      </div>
     </div>
 
   </div>
 </section>
 
-<footer class="footer mt-xl" style="border-top:1px solid var(--c-border)">
-  <div class="container text-center">
-    <div class="nav__logo-text mb-sm">NQR</div>
-    <p class="t-small text-muted">© 2026 NQR. All rights reserved by NEVERNO.</p>
+<footer class="footer">
+  <div class="container container--wide">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="nav__logo">
+          <div class="nav__logo-mark">
+            <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+          </div>
+          <div>
+            <div class="nav__logo-text">NQR</div>
+            <div class="nav__logo-powered">Powered by Neverno</div>
+          </div>
+        </a>
+        <p>Building the future of secure, beautiful QR sharing. Powered by Neverno.</p>
+      </div>
+      <div>
+        <div class="footer__col-title">Product</div>
+        <ul class="footer__links">
+          <li><a href="app-generator.html" class="footer__link">Generator</a></li>
+          <li><a href="features.html" class="footer__link">Features</a></li>
+          <li><a href="security.html" class="footer__link">Security</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Solutions</div>
+        <ul class="footer__links">
+          <li><a href="usecases.html" class="footer__link">Use Cases</a></li>
+          <li><a href="security.html" class="footer__link">Security</a></li>
+          <li><a href="faq.html" class="footer__link active">Help Center</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Legal</div>
+        <ul class="footer__links">
+          <li><a href="privacy-policy.html" class="footer__link">Privacy</a></li>
+          <li><a href="terms-of-service.html" class="footer__link">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© 2026 NQR. All rights reserved by NEVERNO.</p>
+      <div class="footer__powered">
+        <div class="footer__powered-dot"></div>
+        <span>Distributed by Neverno Digital</span>
+      </div>
+    </div>
   </div>
 </footer>
 

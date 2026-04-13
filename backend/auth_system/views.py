@@ -26,11 +26,9 @@ def request_otp(request):
             email = data.get('email', '').strip().lower()
             password = data.get('password', '')
 
-            # 1. The Bouncer: Domain Filter (Strict @neverno.in restriction)
+            # 1. Domain Filter (ALLOW ALL for public platform access)
             target_email = email.lower().strip()
-            
-            if not target_email.endswith('@neverno.in'):
-                return JsonResponse({'error': 'Access restricted to @neverno.in accounts.'}, status=403)
+            # Restriction removed to allow public signups (Gmail, Outlook, etc.)
             
             if not password:
                 return JsonResponse({'error': 'Password is required to proceed.'}, status=400)

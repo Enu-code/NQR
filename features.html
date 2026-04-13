@@ -17,6 +17,12 @@
   overflow: hidden;
   background: var(--g-bg);
 }
+.feat-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.4;
+}
 .feat-hero::after {
   content: '';
   position: absolute;
@@ -47,8 +53,8 @@
 .showcase-item:nth-child(even) .showcase-visual { order: 1; }
 
 .showcase-visual {
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid var(--c-border);
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: var(--r-2xl);
   padding: var(--sp-4xl) var(--sp-2xl);
   position: relative;
@@ -57,6 +63,7 @@
   align-items: center;
   justify-content: center;
   perspective: 1200px;
+  backdrop-filter: blur(10px);
 }
 
 .showcase-visual::after {
@@ -219,10 +226,12 @@
 </section>
 
 <section class="section">
-  <div class="container text-center">
-    <h2 class="t-h1 mb-md">Ready to experience it?</h2>
-    <p class="t-large text-muted mb-xl">Start building your first premium QR code in seconds.</p>
-    <a href="app-generator.html" class="btn btn--primary btn--lg">Open Generator</a>
+  <div class="container">
+    <div class="premium-glass p-xl rounded-3xl text-center glow-text-red">
+      <h2 class="t-h1 mb-md">Ready to experience it?</h2>
+      <p class="t-large text-muted mb-xl">Start building your first premium QR code in seconds.</p>
+      <a href="app-generator.html" class="btn btn--primary btn--lg">Open Generator</a>
+    </div>
   </div>
 </section>
 

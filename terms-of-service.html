@@ -4,40 +4,33 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Terms of Service — NQR</title>
-<link rel="stylesheet" href="styles.css"/>
-<link rel="stylesheet" href="home.css"/>
+<link rel="stylesheet" href="styles.css?v=6"/>
+<link rel="stylesheet" href="home.css?v=6"/>
 <style>
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .animate-block {
-    opacity: 0;
-    animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .animate-d1 { animation-delay: 0.1s; }
-  .animate-d2 { animation-delay: 0.2s; }
-  .animate-d3 { animation-delay: 0.3s; }
-  
-  .glass-card {
-    background: rgba(26, 26, 26, 0.6);
-    backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    transition: all 0.4s ease;
-  }
-  
-  .policy-item {
-    padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid transparent;
-    transition: all 0.3s ease;
-  }
-  .policy-item:hover {
-    background: rgba(255, 255, 255, 0.02);
-    border-color: rgba(255, 255, 255, 0.05);
-    transform: translateX(8px);
-  }
+/* ── Document Page Styling ── */
+.doc-hero {
+  padding: calc(var(--sp-4xl) * 1.5) 0 var(--sp-2xl);
+  text-align: center;
+  position: relative;
+  background: var(--g-bg);
+}
+.doc-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.2;
+}
+.doc-card {
+  margin-top: -40px;
+  margin-bottom: var(--sp-4xl);
+  position: relative;
+  z-index: 10;
+}
+.doc-section {
+  padding: var(--sp-lg) 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.doc-section:last-child { border-bottom: none; }
 </style>
 </head>
 <body>
@@ -46,54 +39,108 @@
   <div class="nav__inner">
     <a href="index.html" class="nav__logo">
       <div class="nav__logo-mark">
-        <img src="assets/logo.png" alt="NQR Logo" style="width:100%;height:100%;border-radius:var(--r-sm);object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+        <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
       </div>
       <div>
         <div class="nav__logo-text">NQR</div>
+        <div class="nav__logo-powered">Powered by Neverno</div>
       </div>
     </a>
     <ul class="nav__links">
       <li><a href="app-generator.html" class="nav__link">Generator</a></li>
       <li><a href="features.html" class="nav__link">Features</a></li>
       <li><a href="usecases.html" class="nav__link">Solutions</a></li>
+      <li><a href="security.html" class="nav__link">Security</a></li>
     </ul>
-    <div class="nav__cta">
+    <div class="nav__cta hide-mobile">
       <a href="user-login.html" class="btn btn--ghost btn--sm">Sign In</a>
+      <a href="user-login.html" class="btn btn--primary btn--sm">Get Started</a>
     </div>
   </div>
 </nav>
 
-<section class="section" style="padding-top:140px">
-  <div class="container container--narrow text-center">
-    <div class="section-badge anim-fade-up">Legal</div>
-    <h1 class="t-hero mt-md anim-fade-up anim-fade-up--d1">Terms of <span class="gradient-text">Service</span></h1>
-    <p class="t-large text-muted mt-lg anim-fade-up anim-fade-up--d2">Last updated: April 2026. Please read these terms carefully before using NQR.</p>
+<section class="doc-hero bg-dot-grid">
+  <div class="container container--narrow">
+    <div class="section-badge anim-fade-up">Legal Framework</div>
+    <h1 class="t-hero mt-md anim-fade-up anim-fade-up--d1">Terms of <span class="gradient-text">Service.</span></h1>
+    <p class="t-large text-muted mt-lg anim-fade-up anim-fade-up--d2">Last modified: April 13, 2026</p>
   </div>
 </section>
 
 <section class="section pt-0">
   <div class="container container--narrow">
-    <div class="glass-card p-xl animate-block">
-      <div class="policy-item pb-md mb-xs animate-block animate-d1">
+    <div class="doc-card premium-glass p-xl rounded-3xl anim-fade-up anim-fade-up--d3">
+      
+      <div class="doc-section">
         <h3 class="t-h3 mb-sm">1. Acceptance of Terms</h3>
-        <p class="t-body text-muted">By accessing and using NQR ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.</p>
+        <p class="t-body text-muted">By accessing and using NQR ("the Service"), you agree to be bound by these Terms of Service. These terms constitute a legally binding agreement between you and NEVERNO Digital. If you do not agree to these terms, please do not use the Service.</p>
       </div>
-      <div class="policy-item pb-md mb-xs animate-block animate-d2">
+
+      <div class="doc-section">
         <h3 class="t-h3 mb-sm">2. Use License</h3>
-        <p class="t-body text-muted">Permission is granted to temporarily use the materials (information or software) on NQR for personal, non-commercial or commercial use, subject to the plan constraints.</p>
+        <p class="t-body text-muted">Permission is granted to use the NQR engine for personal, commercial, or enterprise purposes subject to the constraints of your selected plan. This license is non-transferable and may be revoked if any terms are violated. You are responsible for ensuring your QR content complies with global laws.</p>
       </div>
-      <div class="policy-item pb-xs animate-block animate-d3">
-        <h3 class="t-h3 mb-sm">3. Disclaimer</h3>
-        <p class="t-body text-muted">The materials on NQR are provided on an 'as is' basis. NQR makes no warranties, expressed or implied, and hereby disclaims all other warranties including, without limitation, implied warranties or conditions of merchantability.</p>
+
+      <div class="doc-section">
+        <h3 class="t-h3 mb-sm">3. Platform Limitations</h3>
+        <p class="t-body text-muted">The Service is provided on an "as is" and "as available" basis. While we strive for 99.99% uptime, we do not warrant that the Service will be uninterruped or error-free. We reserve the right to perform maintenance or update the platform architecture at any time.</p>
       </div>
+
+      <div class="doc-section">
+        <h3 class="t-h3 mb-sm">4. Acceptable Use Policy</h3>
+        <p class="t-body text-muted">You agree not to use NQR for the distribution of malicious software, phishing, or any illegal content. We monitor the network for high-risk patterns and reserve the right to disable any QR code that violates our safety standards without prior notice.</p>
+      </div>
+
     </div>
   </div>
 </section>
 
-<footer class="footer mt-xl" style="border-top:1px solid var(--c-border)">
-  <div class="container text-center">
-    <div class="nav__logo-text mb-sm">NQR</div>
-    <p class="t-small text-muted">© 2026 NQR. All rights reserved by NEVERNO.</p>
+<footer class="footer">
+  <div class="container container--wide">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="nav__logo">
+          <div class="nav__logo-mark">
+            <img src="assets/logo.png" alt="NQR Logo" onerror="this.style.display='none'; this.parentElement.innerText='N'">
+          </div>
+          <div>
+            <div class="nav__logo-text">NQR</div>
+            <div class="nav__logo-powered">Powered by Neverno</div>
+          </div>
+        </a>
+        <p>Building the future of secure, beautiful QR sharing. Powered by Neverno.</p>
+      </div>
+      <div>
+        <div class="footer__col-title">Product</div>
+        <ul class="footer__links">
+          <li><a href="app-generator.html" class="footer__link">Generator</a></li>
+          <li><a href="features.html" class="footer__link">Features</a></li>
+          <li><a href="security.html" class="footer__link">Security</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Solutions</div>
+        <ul class="footer__links">
+          <li><a href="usecases.html" class="footer__link">Use Cases</a></li>
+          <li><a href="security.html" class="footer__link">Security</a></li>
+          <li><a href="faq.html" class="footer__link">Help Center</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Legal</div>
+        <ul class="footer__links">
+          <li><a href="privacy-policy.html" class="footer__link">Privacy</a></li>
+          <li><a href="terms-of-service.html" class="footer__link active">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© 2026 NQR. All rights reserved by NEVERNO.</p>
+      <div class="footer__powered">
+        <div class="footer__powered-dot"></div>
+        <span>Distributed by Neverno Digital</span>
+      </div>
+    </div>
   </div>
 </footer>
 

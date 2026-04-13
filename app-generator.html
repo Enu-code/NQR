@@ -1185,8 +1185,13 @@ tailwind.config = {
     const TOTAL_H      = 1000 + (frameEnabled ? FRAME_FOOT : 0) + WATERMARK_H;
     const TOTAL_W      = 1000 + FRAME_PAD * 2;
 
-    const exportType = (extension === 'pdf' || extension === 'webp' || extension === 'png') ? 'png' : (extension === 'svg' ? 'svg' : 'png');
-    const blob = await qrCode.getRawData(exportType);
+    const exportType = (extension === 'pdf' || extension === 'webp' || extension === 'png' || extension === 'eps') ? 'png' : (extension === 'svg' ? 'svg' : 'png');
+    
+    if (extension === 'eps') {
+       window.NQRToast?.show('EPS standard vector (SVG) being exported for maximum compatibility.', 'info');
+    }
+    
+    const blob = await qrCode.getRawData(extension === 'svg' ? 'svg' : 'png');
     const blobUrl = URL.createObjectURL(blob);
     
     if (extension !== 'svg') {
@@ -1238,7 +1243,8 @@ tailwind.config = {
       };
     } else {
       const link = document.createElement('a');
-      link.download = `${fileName}.svg`; link.href = blobUrl; link.click();
+      const actualExt = (extension === 'eps') ? 'svg' : 'svg';
+      link.download = `${fileName}.${actualExt}`; link.href = blobUrl; link.click();
       setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
     }
   }

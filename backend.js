@@ -334,11 +334,17 @@ class NQRBackend {
   }
 
   async resetPassword(email, otp, newPassword) {
-    return this.request('/auth/reset-password', 'POST', { email, otp, newPassword });
+    return this.request('/api/auth/reset-password/', 'POST', { email, otp, newPassword });
   }
 
   async signup(userData, otp) {
-    const result = await this.request('/auth/signup', 'POST', { ...userData, otp });
+    // Consolidated with login: both use verify-otp logic on the backend
+    const result = await this.request('/api/auth/verify-otp/', 'POST', { 
+      email: userData.email, 
+      otp_code: otp,
+      first_name: userData.firstName,
+      last_name: userData.lastName
+    });
 
     // ── Store JWT if returned ──
     if (result.token) NQRAuth.saveToken(result.token);
@@ -409,13 +415,13 @@ class NQRBackend {
   async getLeads(qrId) {
     const email = sessionStorage.getItem('userEmail');
     const url   = qrId
-      ? `/leads?qrId=${encodeURIComponent(qrId)}`
-      : `/leads?ownerEmail=${encodeURIComponent(email)}`;
+      ? `/api/leads/?qrId=${encodeURIComponent(qrId)}`
+      : `/api/leads/?ownerEmail=${encodeURIComponent(email)}`;
     return this.request(url, 'GET');
   }
 
   async saveLead(leadData) {
-    return this.request('/leads', 'POST', leadData);
+    return this.request('/api/leads/', 'POST', leadData);
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -432,20 +438,20 @@ class NQRBackend {
   async saveUserSettings(settings) {
     const email = sessionStorage.getItem('userEmail');
     if (!email) throw new Error('Not logged in');
-    return this.request('/user/settings', 'POST', { email, settings });
+    return this.request('/api/user/settings/', 'POST', { email, settings });
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━
      ADMIN METHODS
   ━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-  async getPlatformStats()  { return this.request('/admin/stats',  'GET'); }
-  async getAllUsers()        { return this.request('/admin/users',  'GET'); }
-  async getAllQRs()          { return this.request('/admin/qrs',   'GET'); }
+  async getPlatformStats()  { return this.request('/admin/stats/',  'GET'); }
+  async getAllUsers()        { return this.request('/admin/users/',  'GET'); }
+  async getAllQRs()          { return this.request('/admin/qrs/',   'GET'); }
   async getAllLeads(ownerEmail) {
     const url = ownerEmail
-      ? `/admin/leads?ownerEmail=${encodeURIComponent(ownerEmail)}`
-      : '/admin/leads';
+      ? `/admin/leads/?ownerEmail=${encodeURIComponent(ownerEmail)}`
+      : '/admin/leads/';
     return this.request(url, 'GET');
   }
 
