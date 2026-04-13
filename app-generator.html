@@ -665,12 +665,23 @@ tailwind.config = {
              <div class="mt-4 font-headline text-[9px] text-black/40 font-bold tracking-widest uppercase" id="previewWatermark">Powered by Neverno</div>
           </div>
 
-          <div class="w-full space-y-4">
              <div class="flex items-center justify-between px-2">
                 <span class="font-headline text-[10px] font-bold uppercase tracking-widest opacity-40">Live Sync</span>
                 <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
              </div>
-             <p class="text-xs text-white/30 text-center italic px-4">"High-fidelity rendering of your engine as you build."</p>
+             <p class="text-[10px] text-white/30 text-center italic px-4">"High-fidelity rendering of your engine as you build."</p>
+             
+             <!-- Quick Action Download -->
+             <div class="pt-4 grid grid-cols-2 gap-3">
+                <button onclick="downloadQR('png')" class="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/40 transition-all group">
+                   <span class="material-symbols-outlined text-lg text-white/40 group-hover:text-primary transition-colors">image</span>
+                   <span class="font-headline text-[9px] font-bold uppercase tracking-widest">PNG</span>
+                </button>
+                <button onclick="downloadQR('pdf')" class="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/40 transition-all group">
+                   <span class="material-symbols-outlined text-lg text-white/40 group-hover:text-primary transition-colors">picture_as_pdf</span>
+                   <span class="font-headline text-[9px] font-bold uppercase tracking-widest">PDF</span>
+                </button>
+             </div>
           </div>
         </div>
       </div>
@@ -839,22 +850,21 @@ tailwind.config = {
 
     if (type === 'link') {
       if (!linkInput.value.trim()) { showFieldError(linkInput, 'Destination URL is required'); isValid = false; }
-      if (!linkName.value.trim()) { showFieldError(linkName, 'QR Name is required'); isValid = false; }
+      // Name is now optional
     } else if (type === 'text') {
       if (!textInput.value.trim()) { showFieldError(textInput, 'Text content is required'); isValid = false; }
-      if (!textName.value.trim()) { showFieldError(textName, 'QR Name is required'); isValid = false; }
+      // Name is now optional
     } else if (type === 'contact') {
       const fn = document.getElementById('vcardFirstName');
       const ln = document.getElementById('vcardLastName');
       const ph = document.getElementById('vcardPhone');
       const em = document.getElementById('vcardEmail');
       if (!fn?.value.trim()) { showFieldError(fn, 'First Name is required'); isValid = false; }
-      if (!ln?.value.trim()) { showFieldError(ln, 'Last Name is required'); isValid = false; }
       if (!ph?.value.trim()) { showFieldError(ph, 'Phone number is required'); isValid = false; }
-      if (!em?.value.trim()) { showFieldError(em, 'Email address is required'); isValid = false; }
+      // ln and em are now optional for better UX
     } else if (type === 'payment') {
       if (!payeeInput.value.trim()) { showFieldError(payeeInput, 'UPI ID / Payee is required'); isValid = false; }
-      if (!paymentName.value.trim()) { showFieldError(paymentName, 'Payment Name is required'); isValid = false; }
+      // Name is now optional
     } else if (type === 'file') {
        const hasFile = !!document.getElementById('fileDropLabel').textContent.includes('✅') || !!document.getElementById('filePickerInput').files.length;
        if(!hasFile) { alert('Please upload a file first.'); isValid = false; }
@@ -1145,14 +1155,27 @@ tailwind.config = {
     } catch(e) { alert('Load failed: ' + e.message); }
   }
 
-  // ── DOWNLOAD LOGIC (Consolidated) ───────────────────────
+  // ── DOWNLOAD LOGIC (Enhanced Compatibility) ───────────────────────
   async function downloadQR(extension) {
     if(!qrCode) return;
+    
+    // Fallback for names if empty
+    const activeTab = document.querySelector('.tab-trigger.active');
+    const type = activeTab ? activeTab.dataset.target.replace('tab-','') : 'qr';
+    let rawName = '';
+    if(type === 'link') rawName = linkName?.value;
+    else if(type === 'text') rawName = textName?.value;
+    else if(type === 'payment') rawName = paymentName?.value;
+    else if(type === 'contact') rawName = document.getElementById('vcardFirstName')?.value;
+    
+    const fileName = (rawName || `nqr-${type}-${Date.now()}`).trim().replace(/[^a-z0-9]/gi, '_');
+
+    // High quality export options
     const downloadOptions = { ...currentOptions, width: 1000, height: 1000 };
-    qrCode.update(downloadOptions);
+    await qrCode.update(downloadOptions);
 
     const frameEnabled = document.getElementById('ctaFrameToggle')?.checked;
-    const frameText    = document.getElementById('ctaFrameText')?.value  || 'Scan Me';
+    const frameText    = (document.getElementById('ctaFrameText')?.value || 'Scan Me').toUpperCase();
     const frameColor   = document.getElementById('ctaFrameColor')?.value || '#20306F';
     const watermarkTxt = (userSettings.brandName || 'Powered by NEVERNO').toUpperCase();
     
@@ -1162,27 +1185,36 @@ tailwind.config = {
     const TOTAL_H      = 1000 + (frameEnabled ? FRAME_FOOT : 0) + WATERMARK_H;
     const TOTAL_W      = 1000 + FRAME_PAD * 2;
 
-    const blob = await qrCode.getRawData(extension === 'svg' ? 'svg' : 'png');
+    const exportType = (extension === 'pdf' || extension === 'webp' || extension === 'png') ? 'png' : (extension === 'svg' ? 'svg' : 'png');
+    const blob = await qrCode.getRawData(exportType);
+    const blobUrl = URL.createObjectURL(blob);
     
-    if (extension === 'png' || extension === 'pdf') {
+    if (extension !== 'svg') {
       const img = new Image();
-      img.src = URL.createObjectURL(blob);
+      img.src = blobUrl;
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = TOTAL_W; canvas.height = TOTAL_H;
+        
         ctx.fillStyle = currentOptions.backgroundOptions.color || '#ffffff';
         ctx.fillRect(0,0, TOTAL_W, TOTAL_H);
         
         if (frameEnabled) {
           ctx.fillStyle = frameColor;
+          // Compatible Rounded Rect Path
+          const r = 40, w = TOTAL_W, h = TOTAL_H - WATERMARK_H;
           ctx.beginPath();
-          ctx.roundRect(0, 0, TOTAL_W, TOTAL_H - WATERMARK_H, 40);
+          ctx.moveTo(r, 0); ctx.lineTo(w-r, 0); ctx.quadraticCurveTo(w, 0, w, r);
+          ctx.lineTo(w, h-r); ctx.quadraticCurveTo(w, h, w-r, h);
+          ctx.lineTo(r, h); ctx.quadraticCurveTo(0, h, 0, h-r);
+          ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
           ctx.fill();
+          
           ctx.drawImage(img, FRAME_PAD, FRAME_PAD/2, 1000, 1000);
           ctx.fillStyle = '#ffffff';
           ctx.font = "bold 36px 'Manrope'"; ctx.textAlign = 'center';
-          ctx.fillText(frameText.toUpperCase(), TOTAL_W/2, 1000 + FRAME_PAD/2 + 25);
+          ctx.fillText(frameText, TOTAL_W/2, 1000 + FRAME_PAD/2 + 25);
         } else {
           ctx.drawImage(img, 0, 0);
         }
@@ -1195,17 +1227,19 @@ tailwind.config = {
           const { jsPDF } = window.jspdf;
           const pdf = new jsPDF({ unit: 'px', format: [canvas.width, canvas.height] });
           pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
-          pdf.save(`nqr-${Date.now()}.pdf`);
+          pdf.save(`${fileName}.pdf`);
         } else {
+          const mime = (extension === 'webp') ? 'image/webp' : 'image/png';
           const link = document.createElement('a');
-          link.download = `nqr-${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+          link.download = `${fileName}.${extension}`; link.href = canvas.toDataURL(mime); link.click();
         }
+        URL.revokeObjectURL(blobUrl);
         updatePreview(true);
       };
     } else {
-      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.download = `nqr-${Date.now()}.svg`; link.href = url; link.click();
+      link.download = `${fileName}.svg`; link.href = blobUrl; link.click();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
     }
   }
 
