@@ -26,15 +26,10 @@ def request_otp(request):
             email = data.get('email', '').strip().lower()
             password = data.get('password', '')
 
-            # 1. The Bouncer: Domain Filter (Temporary allowance for eshaan.play@gmail.com)
-            # Normalize email for comparison
+            # 1. The Bouncer: Domain Filter (Strict @neverno.in restriction)
             target_email = email.lower().strip()
             
-            is_allowed = target_email.endswith('@neverno.in') or target_email == 'eshaan.play@gmail.com'
-            
-            if not is_allowed:
-                # Debug print for server logs
-                print(f"[AUTH DEBUG] Rejected email: '{target_email}'")
+            if not target_email.endswith('@neverno.in'):
                 return JsonResponse({'error': 'Access restricted to @neverno.in accounts.'}, status=403)
             
             if not password:
