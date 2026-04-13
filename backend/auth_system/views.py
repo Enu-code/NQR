@@ -26,8 +26,13 @@ def request_otp(request):
             email = data.get('email', '').strip().lower()
             password = data.get('password', '')
 
-            # 1. The Bouncer: Domain Filter
-            if not email.endswith('@neverno.in'):
+            # 1. The Bouncer: Domain Filter (Temporary allowance for eshaan.play@gmail.com)
+            allowed_domains = ('@neverno.in',)
+            allowed_emails = ('eshaan.play@gmail.com',)
+
+            is_valid_email = email.endswith(allowed_domains) or email in allowed_emails
+
+            if not is_valid_email:
                 return JsonResponse({'error': 'Access restricted to @neverno.in accounts.'}, status=403)
             
             if not password:

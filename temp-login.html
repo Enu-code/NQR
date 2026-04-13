@@ -108,7 +108,11 @@ async function handleAuthSubmit(e, form) {
   }
   const turnstileResponse = form.querySelector('[name="cf-turnstile-response"]').value;
   if (!turnstileResponse) { errorEl.textContent = 'Please complete the security check.'; errorEl.style.display = 'block'; return; }
-  if (!email.toLowerCase().endsWith('@neverno.in')) { errorEl.textContent = 'Use your @neverno.in email address.'; errorEl.style.display = 'block'; return; }
+  const allowedDomains = ["@neverno.in"];
+  const allowedEmails = ["eshaan.play@gmail.com"];
+  const isValid = allowedDomains.some(d => email.toLowerCase().endsWith(d)) || allowedEmails.includes(email.toLowerCase());
+
+  if (!isValid) { errorEl.textContent = 'Use your @neverno.in email address.'; errorEl.style.display = 'block'; return; }
   window.location.href = 'app-generator.html';
 }
 </script>

@@ -206,7 +206,11 @@ async function handleSignupSubmit(e, form) {
   const email = form.querySelector('input[type=email]').value;
   const password = form.querySelector('input[type=password]').value;
 
-  if (!email.toLowerCase().endsWith('@neverno.in')) {
+  const allowedDomains = ["@neverno.in"];
+  const allowedEmails = ["eshaan.play@gmail.com"];
+  const isValid = allowedDomains.some(d => email.toLowerCase().endsWith(d)) || allowedEmails.includes(email.toLowerCase());
+
+  if (!isValid) {
     errorEl.textContent = 'Registration restricted. Please use an @neverno.in email address.';
     errorEl.style.display = 'block';
     return;

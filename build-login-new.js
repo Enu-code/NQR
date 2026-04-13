@@ -345,7 +345,11 @@ async function handleAuthSubmit(e, form) {
   const otp = document.getElementById('authOtp').value.trim();
   const mode = document.body.getAttribute('data-mode');
 
-  if (!email.endsWith('@neverno.in') && mode !== 'otp') {
+  const allowedDomains = ["@neverno.in"];
+  const allowedEmails = ["eshaan.play@gmail.com"];
+  const isValid = allowedDomains.some(d => email.endsWith(d)) || allowedEmails.includes(email);
+
+  if (!isValid && mode !== 'otp') {
     if (mode === 'signup' || mode === 'forgot') {
       errorEl.innerHTML = 'Account operations are restricted to @neverno.in domains only.';
     } else {
@@ -424,7 +428,7 @@ async function handleAuthSubmit(e, form) {
 }
 </script>
 </body>
-</html>\`;
+</html>`;
 
 fs.writeFileSync(path.join(__dirname, 'user-login.html'), html, { encoding: 'utf8', flag: 'w' });
 console.log('Login page updated with new UI template!');
