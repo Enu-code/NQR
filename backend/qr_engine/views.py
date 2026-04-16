@@ -29,7 +29,7 @@ def get_user_from_request(request):
 
 # ─── CORS helper ─────────────────────────────────────────────────────────────
 def cors_json_response(data, status=200):
-    resp = JsonResponse(data, status=status)
+    resp = JsonResponse(data, status=status, safe=False)
     resp['Access-Control-Allow-Origin']  = '*'
     resp['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     resp['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, OPTIONS'
