@@ -11,8 +11,13 @@ from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import UserOTP
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
 
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def request_otp(request):
     """
     Requirements:
@@ -22,16 +27,15 @@ def request_otp(request):
     """
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            email = data.get('email', '').strip().lower()
-            password = data.get('password', '')
+            email = request.data.get('email', '').strip().lower()
+            password = request.data.get('password', '')
 
             # 1. Domain Filter (ALLOW ALL for public platform access)
             target_email = email.lower().strip()
             # Restriction removed to allow public signups (Gmail, Outlook, etc.)
             
             if not password:
-                return JsonResponse({'error': 'Password is required to proceed.'}, status=400)
+                return Response({'error': 'Password is required to proceed.'}, status=status.HTTP_400_BAD_REQUEST)
 
             # 2. Rate Limiting (Cost Protection): 60 seconds
             last_otp = UserOTP.objects.filter(email=email).order_by('-created_at').first()
@@ -39,14 +43,14 @@ def request_otp(request):
                 cooldown_period = timezone.now() - last_otp.created_at
                 if cooldown_period < timedelta(seconds=60):
                     remaining = 60 - int(cooldown_period.total_seconds())
-                    return JsonResponse({'error': f'Please wait {remaining}s before requesting a new code.'}, status=429)
+                    return Response({'error': f'Please wait {remaining}s before requesting a new code.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
             # Check if user exists (if so, verify password before sending OTP)
             user_exists = User.objects.filter(email=email).exists()
             if user_exists:
                 user = User.objects.get(email=email)
                 if not user.check_password(password):
-                    return JsonResponse({'error': 'Invalid email address or password.'}, status=400)
+                    return Response({'error': 'Invalid email address or password.'}, status=status.HTTP_400_BAD_REQUEST)
 
             # Generate 6-digit OTP
             otp_code = str(random.randint(100000, 999999))
@@ -67,18 +71,19 @@ def request_otp(request):
                     recipient_list=[email],
                     fail_silently=False,
                 )
-                return JsonResponse({'message': 'OTP sent successfully.'})
+                return Response({'message': 'OTP sent successfully.'})
             except Exception as e:
                 if settings.DEBUG:
                     print(f"SES Error: {str(e)}")
-                    return JsonResponse({'message': f'Debug: OTP is {otp_code}'})
-                return JsonResponse({'error': 'Failed to deliver security code.'}, status=500)
+                    return Response({'message': f'Debug: OTP is {otp_code}'})
+                return Response({'error': 'Failed to deliver security code.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         except Exception as e:
-            return JsonResponse({'error': 'Invalid request parameters.'}, status=400)
+            return Response({'error': 'Invalid request parameters.'}, status=status.HTTP_400_BAD_REQUEST)
     return JsonResponse({'error': 'POST required.'}, status=405)
 
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def verify_otp(request):
     """
     Requirements:
@@ -87,10 +92,9 @@ def verify_otp(request):
     """
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            email = data.get('email', '').strip().lower()
-            otp_code = data.get('otp_code', '').strip()
-            remember_me = data.get('remember_me', False)
+            email = request.data.get('email', '').strip().lower()
+            otp_code = request.data.get('otp_code', '').strip()
+            remember_me = request.data.get('remember_me', False)
 
             # Find the most recent OTP record for this email/code
             otp_record = UserOTP.objects.filter(email=email, otp_code=otp_code).last()
@@ -119,7 +123,7 @@ def verify_otp(request):
                 # Generate JWT
                 refresh = RefreshToken.for_user(user)
                 
-                return JsonResponse({
+                return Response({
                     'message': 'Session established.',
                     'token': str(refresh.access_token),
                     'user': {
@@ -130,7 +134,7 @@ def verify_otp(request):
                     }
                 })
             else:
-                return JsonResponse({'error': 'Code is invalid or has expired.'}, status=401)
+                return Response({'error': 'Code is invalid or has expired.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         except Exception as e:
             return JsonResponse({'error': 'Verification failed.'}, status=400)
