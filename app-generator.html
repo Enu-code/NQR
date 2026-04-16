@@ -692,6 +692,23 @@ tailwind.config = {
   </div>
 </div>
 
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="qr-modal" id="deleteModal" style="z-index: 3000;">
+  <div class="qr-modal__backdrop" id="deleteModalBackdrop"></div>
+  <div class="qr-modal__content premium-glass max-w-[400px] text-center p-8 mx-auto self-center mt-32 relative">
+    <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform">
+      <span class="material-symbols-outlined text-3xl">delete</span>
+    </div>
+    <h3 class="font-headline text-2xl font-black mb-2 tracking-tight">Delete Engine?</h3>
+    <p class="text-sm text-white/50 mb-8 px-4 font-body">This action cannot be undone. The shortlink will be permanently disconnected.</p>
+    
+    <div class="flex gap-3">
+      <button class="flex-1 py-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline font-bold tracking-widest uppercase text-[10px] transition-all" id="cancelDeleteBtn">Cancel</button>
+      <button class="flex-1 py-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-headline font-bold tracking-widest uppercase text-[10px] shadow-[0_4px_20px_rgba(220,38,38,0.3)] hover:shadow-[0_4px_30px_rgba(220,38,38,0.5)] transition-all flex justify-center items-center gap-2" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ── STATE & CONSTANTS ────────────────────────────────────
   let qrCode = null;
@@ -1066,10 +1083,40 @@ tailwind.config = {
     } catch(e) { tbody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-primary/50">Connectivity Error</td></tr>`; }
   }
 
-  async function deleteHistoryQR(id) {
-    if(!confirm('Delete this QR?')) return;
-    try { await window.API.deleteQR(id); loadHistory(); } catch(e) { alert('Delete failed: ' + e.message); }
+  let qrIdToDelete = null;
+  const deleteModal = document.getElementById('deleteModal');
+  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+  function closeDeleteModal() {
+    deleteModal.classList.remove('active');
+    qrIdToDelete = null;
   }
+
+  cancelDeleteBtn?.addEventListener('click', closeDeleteModal);
+  document.getElementById('deleteModalBackdrop')?.addEventListener('click', closeDeleteModal);
+
+  async function deleteHistoryQR(id) {
+    qrIdToDelete = id;
+    deleteModal.classList.add('active');
+  }
+
+  confirmDeleteBtn?.addEventListener('click', async () => {
+    if(!qrIdToDelete) return;
+    const originalText = confirmDeleteBtn.innerHTML;
+    confirmDeleteBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-lg">sync</span>';
+    confirmDeleteBtn.disabled = true;
+    try { 
+      await window.API.deleteQR(qrIdToDelete); 
+      closeDeleteModal();
+      loadHistory(); 
+    } catch(e) { 
+      alert('Delete failed: ' + e.message); 
+    } finally {
+      confirmDeleteBtn.innerHTML = originalText;
+      confirmDeleteBtn.disabled = false;
+    }
+  });
 
   async function editQR(id) {
     try {
