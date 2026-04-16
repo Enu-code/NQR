@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 class QRCode(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='qrcodes')
     qr_id = models.CharField(max_length=100, unique=True)
-    url = models.URLField()
+    url = models.TextField() # Supports URLs, vCards, and raw text
     config = models.JSONField(default=dict, blank=True) # For branding, colors, etc.
     created_at = models.DateTimeField(auto_now_add=True)
 
