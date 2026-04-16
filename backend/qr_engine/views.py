@@ -1,3 +1,4 @@
+# QR Engine Views - Core Logic
 import segno
 import json
 import uuid
