@@ -284,8 +284,11 @@ class NQRBackend {
     } catch (networkErr) {
       // Network failure (no internet, DNS, CORS blocked pre-flight, etc.)
       this._clearColdStart();
-      // Only show the toast for interactive requests; silent=true for background data loads
-      if (!silent) {
+
+      // Suppress toast for aborted requests (happens during page navigation)
+      const isAbort = networkErr.name === 'AbortError' || networkErr.message?.toLowerCase().includes('aborted');
+
+      if (!silent && !isAbort) {
         NQRToast.show('No internet connection or server unreachable. Please check your network.', 'error');
       }
       throw new Error('Network error: ' + networkErr.message);
