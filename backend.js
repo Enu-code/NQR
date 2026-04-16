@@ -307,12 +307,17 @@ class NQRBackend {
     // ── Global error interceptor ──
     if (!response.ok) {
       if (response.status === 401) {
-        // Token expired or invalid — clear session and prompt re-login
-        NQRAuth.clearToken();
-        sessionStorage.removeItem('userLoggedIn');
-        NQRToast.show('Your session has expired. Please sign in again.', 'info', 5000);
-        setTimeout(() => window.location.replace('user-login.html'), 2000);
-        throw new Error('Unauthorized');
+        // Only trigger session expiry if the request was authenticated
+        const hasAuthHeader = !!(options.headers && options.headers['Authorization']);
+        
+        if (hasAuthHeader) {
+            NQRAuth.clearToken();
+            sessionStorage.removeItem('userLoggedIn');
+            NQRToast.show('Your session has expired. Please sign in again.', 'info', 5000);
+            setTimeout(() => window.location.replace('user-login.html'), 2000);
+            throw new Error('Unauthorized');
+        }
+        // Otherwise, fall through to the default error throw below
       }
 
       if (response.status >= 500) {

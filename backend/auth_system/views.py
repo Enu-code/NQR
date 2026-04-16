@@ -46,7 +46,7 @@ def request_otp(request):
             if user_exists:
                 user = User.objects.get(email=email)
                 if not user.check_password(password):
-                    return JsonResponse({'error': 'Incorrect password details.'}, status=401)
+                    return JsonResponse({'error': 'Invalid email address or password.'}, status=400)
 
             # Generate 6-digit OTP
             otp_code = str(random.randint(100000, 999999))
