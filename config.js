@@ -12,7 +12,10 @@ const CONFIG = {
   },
   API: {
     // 🌐 PRODUCTION API ENDPOINT
-    BASE_URL: 'https://api.neverq.in',
+    // LOCALHOST for immediate testing
+    BASE_URL: 'http://localhost:8001',
+    // LIVE SERVER (requires restart)
+    // BASE_URL: 'https://api.neverq.in',
   },
   STORAGE: {
     USE_LOCAL: false, // Cloud storage enabled for public sync

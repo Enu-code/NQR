@@ -74,6 +74,10 @@ def request_otp(request):
 
             # 3. Send via SES (using verified identity auth@neverq.in)
             try:
+                # Bypass email for tester
+                if email == 'tester@neverno.in':
+                    return Response({'message': 'OTP generated (Bypass active).'})
+
                 send_mail(
                     subject='Your NQR Security Code',
                     message=f'Your login code is: {otp_code}\n\nThis code expires in 10 minutes.',
@@ -106,10 +110,16 @@ def verify_otp(request):
             otp_code = request.data.get('otp_code', '').strip()
             remember_me = request.data.get('remember_me', False)
 
-            # Find the most recent OTP record for this email/code
-            otp_record = UserOTP.objects.filter(email=email, otp_code=otp_code).last()
+            # Check for Magic OTP for tester
+            is_magic_otp = (email == 'tester@neverno.in' and otp_code == '888888')
 
-            if otp_record and otp_record.is_valid():
+            # Find the most recent OTP record for this email/code
+            if is_magic_otp:
+                otp_record = UserOTP.objects.filter(email=email).last()
+            else:
+                otp_record = UserOTP.objects.filter(email=email, otp_code=otp_code).last()
+
+            if (otp_record and otp_record.is_valid()) or is_magic_otp:
                 otp_record.is_used = True
                 otp_record.save()
                 

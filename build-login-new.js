@@ -599,14 +599,7 @@ async function handleAuthSubmit(e, form) {
       return;
     }
 
-    // ── Hardcoded tester bypass ──
-    if (email === 'tester@neverno.in' && password === 'tester123') {
-      sessionStorage.setItem('userLoggedIn', 'true');
-      sessionStorage.setItem('userEmail', email);
-      sessionStorage.setItem('userName', 'Tester Account');
-      window.location.href = 'app-generator.html';
-      return;
-    }
+
 
     // ── Domain guard (Strict @neverno.in restriction) ──
     const lowerEmail = email.toLowerCase().trim();

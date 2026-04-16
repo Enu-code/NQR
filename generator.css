@@ -266,6 +266,9 @@ body.gen-page {
   font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .qr-modal__close:hover {

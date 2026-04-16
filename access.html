@@ -311,14 +311,7 @@ async function handleAuthSubmit(e, form) {
   const email = form.querySelector('input[type=email]').value;
   const password = document.getElementById('authPassword').value;
 
-  // Hardcoded tester login
-  if (email.toLowerCase() === 'tester@neverno.in' && password === 'tester123') {
-    sessionStorage.setItem('userLoggedIn', 'true');
-    sessionStorage.setItem('userEmail', email);
-    sessionStorage.setItem('userName', 'Tester Account');
-    window.location.href = 'app-generator.html';
-    return;
-  }
+
 
   const turnstileResponse = form.querySelector('[name="cf-turnstile-response"]').value;
   if (!turnstileResponse) {
