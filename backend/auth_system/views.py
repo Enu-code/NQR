@@ -29,6 +29,7 @@ def request_otp(request):
         try:
             email = request.data.get('email', '').strip().lower()
             password = request.data.get('password', '')
+            mode = request.data.get('mode', 'login') # 'login' or 'signup'
 
             # 1. Domain Filter (ALLOW ALL for public platform access)
             target_email = email.lower().strip()
@@ -45,12 +46,21 @@ def request_otp(request):
                     remaining = 60 - int(cooldown_period.total_seconds())
                     return Response({'error': f'Please wait {remaining}s before requesting a new code.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
-            # Check if user exists (if so, verify password before sending OTP)
+            # Check if user exists
             user_exists = User.objects.filter(email=email).exists()
-            if user_exists:
+
+            if mode == 'login':
+                if not user_exists:
+                    return Response({'error': 'No account found with this email address.'}, status=status.HTTP_400_BAD_REQUEST)
+                
                 user = User.objects.get(email=email)
                 if not user.check_password(password):
                     return Response({'error': 'Invalid email address or password.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            elif mode == 'signup':
+                if user_exists:
+                    return Response({'error': 'An account with this email already exists. Please log in instead.'}, status=status.HTTP_400_BAD_REQUEST)
+                # Password will be set later via UserOTP.pending_password
 
             # Generate 6-digit OTP
             otp_code = str(random.randint(100000, 999999))

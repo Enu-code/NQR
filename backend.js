@@ -337,8 +337,8 @@ class NQRBackend {
      AUTH METHODS
   ━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-  async requestOtp(email, password) {
-    return this.request('/api/auth/request-otp/', 'POST', { email, password });
+  async requestOtp(email, password, mode = 'login') {
+    return this.request('/api/auth/request-otp/', 'POST', { email, password, mode });
   }
 
   async resetPassword(email, otp, newPassword) {
