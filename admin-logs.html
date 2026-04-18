@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Scan Surveillance — NQR Admin</title>
 <script src="config.js"></script>
-<script src="backend.js"></script>
+<script src="backend.js?v=6"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=DM+Sans:ital,opsz,wght@0,9..40,300..1000;1,9..40,300..1000&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="styles.css?v=3"/>
-<link rel="stylesheet" href="admin.css?v=4"/>
+<link rel="stylesheet" href="admin.css?v=8"/>
 <style>
   .print-only { display: none; }
   .scan-table-wrap {
@@ -17,6 +18,10 @@
 </style>
 </head>
 <body class="dash-body">
+  <!-- Background Effects -->
+  <div class="glow-orb glow-orb--1"></div>
+  <div class="glow-orb glow-orb--2"></div>
+  <div class="glow-orb glow-orb--3"></div>
 
 <script>
   let currentQrFilter = null;
@@ -126,8 +131,10 @@
 <div class="dash-layout">
   <header class="dash-top-nav">
     <div class="dash-nav-container">
-      <div class="dash-brand">
-        <div class="nav__logo-mark">N</div>
+      <div class="dash-brand" onclick="window.location.href='index.html'">
+        <div class="vault-logo-mark">
+          <img src="assets/logo.png" alt="NQR Logo" />
+        </div>
         <div class="nav__logo-text">NQR</div>
       </div>
       
@@ -180,7 +187,7 @@
         <h1 class="t-h3">Scan Surveillance</h1>
         <p class="t-small text-muted mt-xs">Real-time audit of QR code scans, IP locations, and acquisition metrics.</p>
       </div>
-      <div class="flex gap-sm">
+      <div class="flex gap-sm items-center">
         <button class="btn btn--primary btn--sm" onclick="handlePrint()">Print Audit Report</button>
       </div>
     </header>
@@ -190,19 +197,19 @@
         <div class="card card--static card-glass" style="flex:1">
           <div class="card-inner p-md">
             <div class="t-label text-muted" style="font-size:0.65rem">Uptime</div>
-            <div class="t-h4" style="color:#4ade80; margin-top:4px">—</div>
+            <div class="t-h4" style="color:#4ade80; margin-top:4px" id="logUptime">99.98%</div>
           </div>
         </div>
         <div class="card card--static card-glass" style="flex:1">
           <div class="card-inner p-md">
             <div class="t-label text-muted" style="font-size:0.65rem">Total Scans (24h)</div>
-            <div class="t-h4" style="color:var(--c-blue-light); margin-top:4px">—</div>
+            <div class="t-h4" style="color:var(--c-blue-light); margin-top:4px" id="logScans24h">—</div>
           </div>
         </div>
         <div class="card card--static card-glass" style="flex:1">
           <div class="card-inner p-md">
             <div class="t-label text-muted" style="font-size:0.65rem">Unique IPs</div>
-            <div class="t-h4" style="color:#facc15; margin-top:4px">—</div>
+            <div class="t-h4" style="color:#facc15; margin-top:4px" id="logUniqueIps">—</div>
           </div>
         </div>
       </div>
@@ -219,8 +226,8 @@
                 <th class="t-label text-muted text-center" style="padding: 16px">Status</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
+            <tbody id="logsTableBody">
+              <tr id="emptyLogsRow">
                 <td colspan="5" style="text-align:center; padding: 48px 16px; opacity: 0.4;">
                   <div class="t-small">No scan events recorded yet.</div>
                 </td>
@@ -234,4 +241,68 @@
 </div>
 
 </body>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      let scansResponse = await window.API.getAllScans();
+      let scans = Array.isArray(scansResponse) ? scansResponse : (scansResponse.results || []);
+      
+      const tbody = document.getElementById('logsTableBody');
+      const emptyRow = document.getElementById('emptyLogsRow');
+
+      if (scans && scans.length > 0) {
+        if (emptyRow) emptyRow.style.display = 'none';
+        tbody.innerHTML = '';
+        
+        let scans24h = 0;
+        const cutoff24h = Date.now() - (24 * 60 * 60 * 1000);
+        const uniqueIps = new Set();
+
+        const sortedScans = [...scans].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        sortedScans.forEach(scan => {
+          const scanTime = new Date(scan.timestamp);
+          if (scanTime.getTime() > cutoff24h) scans24h++;
+          if (scan.ip_address) uniqueIps.add(scan.ip_address);
+
+          const tdHtml = `
+            <td style="text-align:center; padding: 16px">
+              <div class="t-small" style="font-weight:600">${scanTime.toLocaleDateString()}</div>
+              <div class="t-mono text-muted2" style="font-size:0.65rem">${scanTime.toLocaleTimeString()}</div>
+            </td>
+            <td style="text-align:center">
+              <div class="t-small" style="font-weight:600">Scan Event</div>
+              <div class="t-mono text-muted2" style="font-size:0.65rem">QR ID: ${scan.qr || 'Unknown'}</div>
+            </td>
+            <td style="text-align:center">
+              <div class="t-small">${scan.location || 'Unknown'}</div>
+              <div class="t-mono text-muted2" style="font-size:0.65rem">${scan.ip_address || 'Hidden'}</div>
+            </td>
+            <td style="text-align:center">
+              <div class="t-small">${scan.device_type || 'Unknown'}</div>
+            </td>
+            <td style="text-align:center">
+              <div class="dash-status dash-status--active" style="display:inline-flex; justify-content:center; margin:0 auto">${scan.status || 'Success'}</div>
+            </td>
+          `;
+          const tr = document.createElement('tr');
+          tr.innerHTML = tdHtml;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById('logScans24h').textContent = scans24h;
+        document.getElementById('logUniqueIps').textContent = uniqueIps.size;
+      } else {
+        document.getElementById('logScans24h').textContent = '0';
+        document.getElementById('logUniqueIps').textContent = '0';
+      }
+    } catch (err) {
+      console.error('Failed to load scan logs:', err);
+    }
+  });
+
+  function handlePrint() {
+    window.print();
+  }
+</script>
 </html>

@@ -28,11 +28,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 class QRCodeSerializer(serializers.ModelSerializer):
     owner_email = serializers.EmailField(source='owner.email', read_only=True)
+    scan_count = serializers.SerializerMethodField()
     
     class Meta:
         model = QRCode
-        fields = ['id', 'qr_id', 'url', 'config', 'created_at', 'owner', 'owner_email']
+        fields = ['id', 'qr_id', 'url', 'config', 'created_at', 'owner', 'owner_email', 'scan_count']
         read_only_fields = ['created_at']
+
+    def get_scan_count(self, obj):
+        return obj.scans.count()
 
 class LeadSerializer(serializers.ModelSerializer):
     qr_id_display = serializers.CharField(source='qr.qr_id', read_only=True)

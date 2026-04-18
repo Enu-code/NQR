@@ -32,3 +32,17 @@ class Scan(models.Model):
 
     def __str__(self):
         return f"{self.qr.qr_id} scanned at {self.timestamp}"
+
+class PlatformStat(models.Model):
+    key = models.CharField(max_length=50, unique=True)
+    value = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.key}: {self.value}"
+
+    @classmethod
+    def increment(cls, key, amount=1):
+        stat, _ = cls.objects.get_or_create(key=key)
+        stat.value += amount
+        stat.save()
+        return stat.value

@@ -439,7 +439,7 @@ class NQRBackend {
   async getUserSettings() {
     const email = sessionStorage.getItem('userEmail');
     if (!email) return {};
-    const res = await this.request(`/user/settings?email=${encodeURIComponent(email)}`, 'GET');
+    const res = await this.request(`/api/user/settings/?email=${encodeURIComponent(email)}`, 'GET');
     return res.settings || {};
   }
 
@@ -453,13 +453,30 @@ class NQRBackend {
      ADMIN METHODS
   ━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-  async getPlatformStats()  { return this.request('/admin/stats/',  'GET'); }
-  async getAllUsers()        { return this.request('/admin/users/',  'GET'); }
-  async getAllQRs()          { return this.request('/admin/qrs/',   'GET'); }
+  async adminLogin(username, password) {
+    const result = await this.request('/api/admin/login/', 'POST', { username, password });
+
+    // ── Store JWT / Session info ──
+    if (result.token) NQRAuth.saveToken(result.token);
+
+    // ── Session Flags ──
+    sessionStorage.setItem('adminLoggedIn', 'true');
+    sessionStorage.setItem('userLoggedIn', 'true'); // Admins are also users
+    sessionStorage.setItem('userEmail', result.user?.email || '');
+    sessionStorage.setItem('userName', result.user?.name || result.user?.username || 'Admin');
+
+    return result;
+  }
+
+  async getPlatformStats()  { return this.request('/api/admin/stats/',  'GET'); }
+  async getAllUsers()        { return this.request('/api/admin/users/',  'GET'); }
+  async getAllQRs()          { return this.request('/api/admin/qrs/',   'GET'); }
+  async deleteAdminQr(id)    { return this.request(`/api/admin/qrs/${id}/`, 'DELETE'); }
+  async getAllScans()        { return this.request('/api/admin/scans/',  'GET'); }
   async getAllLeads(ownerEmail) {
     const url = ownerEmail
-      ? `/admin/leads/?ownerEmail=${encodeURIComponent(ownerEmail)}`
-      : '/admin/leads/';
+      ? `/api/admin/leads/?ownerEmail=${encodeURIComponent(ownerEmail)}`
+      : '/api/admin/leads/';
     return this.request(url, 'GET');
   }
 
@@ -529,7 +546,6 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ── Protected app pages: kick unauthenticated users ── */
   const PROTECTED = [
     'app-generator.html',
-    'admin-portal.html',
     'admin.html',
     'admin-logs.html',
     'admin-qrs.html',

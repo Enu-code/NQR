@@ -53,8 +53,9 @@ def request_otp(request):
                 if not user_exists:
                     return Response({'error': 'No account found with this email address.'}, status=status.HTTP_400_BAD_REQUEST)
                 
-                user = User.objects.get(email=email)
-                if not user.check_password(password):
+                # Use filter().first() to avoid MultipleObjectsReturned crashes
+                user = User.objects.filter(email=email).first()
+                if not user or not user.check_password(password):
                     return Response({'error': 'Invalid email address or password.'}, status=status.HTTP_400_BAD_REQUEST)
             
             elif mode == 'signup':
@@ -93,6 +94,8 @@ def request_otp(request):
                 return Response({'error': 'Failed to deliver security code.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         except Exception as e:
+            import traceback
+            traceback.print_exc() # Log for internal visibility
             return Response({'error': 'Invalid request parameters.'}, status=status.HTTP_400_BAD_REQUEST)
     return JsonResponse({'error': 'POST required.'}, status=405)
 

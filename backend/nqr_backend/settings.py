@@ -133,6 +133,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://api.neverq.in',
     'https://neverq.in',
     'https://www.neverq.in',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
 
 # Email Configuration (Resend SMTP)

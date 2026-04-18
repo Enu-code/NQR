@@ -41,6 +41,9 @@ def cors_json_response(data, status=200):
 def generate_qr(request):
     url = request.GET.get('url', 'https://neverno.in')
     try:
+        from .models import PlatformStat
+        PlatformStat.increment('total_generated')
+        
         qrcode = segno.make_qr(url)
         out = io.BytesIO()
         qrcode.save(out, kind='svg', scale=10)

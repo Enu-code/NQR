@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Settings — NQR Admin</title>
+<title>QR Codes — NQR Admin</title>
 <script src="config.js"></script>
-<script src="backend.js"></script>
+<script src="backend.js?v=9"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=DM+Sans:ital,opsz,wght@0,9..40,300..1000;1,9..40,300..1000&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="styles.css?v=3"/>
-<link rel="stylesheet" href="admin.css?v=4"/>
+<link rel="stylesheet" href="admin.css?v=8"/>
 <style>
   .qr-tag {
     font-size: 0.6rem;
@@ -69,6 +70,10 @@
 </style>
 </head>
 <body class="dash-body">
+  <!-- Background Effects -->
+  <div class="glow-orb glow-orb--1"></div>
+  <div class="glow-orb glow-orb--2"></div>
+  <div class="glow-orb glow-orb--3"></div>
 
 <script>
   const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
@@ -78,9 +83,11 @@
 <div class="dash-layout">
   <header class="dash-top-nav">
     <div class="dash-nav-container">
-      <div class="dash-brand">
-        <div class="nav__logo-mark" onclick="window.location.href='admin.html'" style="cursor:pointer">N</div>
-        <div class="nav__logo-text" onclick="window.location.href='admin.html'" style="cursor:pointer">NQR</div>
+      <div class="dash-brand" onclick="window.location.href='index.html'">
+        <div class="vault-logo-mark">
+          <img src="assets/logo.png" alt="NQR Logo" />
+        </div>
+        <div class="nav__logo-text">NQR</div>
       </div>
       
       <nav class="dash-nav">
@@ -125,7 +132,7 @@
         <h1 class="t-h3">Settings</h1>
         <p class="t-small text-muted mt-xs">Advanced control over all generated QR codes across the platform.</p>
       </div>
-      <div class="flex gap-md">
+      <div class="flex gap-md items-center">
         <div class="card card--static card-glass" style="min-width:160px">
           <div class="card-inner p-md">
             <div class="t-label text-muted" style="font-size:0.65rem">Total QRs</div>
@@ -190,11 +197,26 @@
   </div>
 </div>
 
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title" style="color:var(--c-red)">Delete QR Code</h3>
+      <p class="t-small text-muted mt-xs">Are you absolutely sure you want to permanently delete this QR Code? This action cannot be undone and will instantly break all existing physical links pointing to this code.</p>
+    </div>
+    <div class="modal-footer" style="padding-top:24px; border-top:none">
+      <button class="btn btn--ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn--primary" id="confirmDeleteBtn" style="background:var(--c-red); border:none">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ── LIVE DATA POPULATION ──
   document.addEventListener('DOMContentLoaded', async () => {
     try {
-      const qrs = await window.API.getAllQRs();
+      let qrsResponse = await window.API.getAllQRs();
+      let qrs = Array.isArray(qrsResponse) ? qrsResponse : (qrsResponse.results || []);
       const tbody = document.getElementById('qrTableBody');
       const emptyRow = document.getElementById('emptyQrRow');
       const totalCountEl = document.getElementById('totalQrCount');
@@ -230,6 +252,7 @@
               <div class="flex justify-center gap-sm">
                 <button class="btn btn--ghost btn--sm" onclick="editQr('${qr.id}')">Edit</button>
                 <button class="btn btn--ghost btn--sm text-red" onclick="toggleQrStatus('${qr.id}', event)">Suspend</button>
+                <button class="btn btn--primary btn--sm" style="background:var(--c-red); border:none" onclick="openDeleteModal('${qr.id}')">Delete</button>
               </div>
             </td>
           `;
@@ -308,6 +331,46 @@
       btnEl.textContent = 'Suspend';
     }
   }
+
+  let qrToDelete = null;
+
+  function openDeleteModal(qrId) {
+    qrToDelete = qrId;
+    document.getElementById('deleteModal').classList.add('active');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+    qrToDelete = null;
+  }
+
+  document.getElementById('confirmDeleteBtn').addEventListener('click', async (event) => {
+    if (!qrToDelete) return;
+    
+    const btn = event.target;
+    const oldText = btn.textContent;
+    btn.textContent = 'Deleting...';
+    btn.disabled = true;
+
+    try {
+      await window.API.deleteAdminQr(qrToDelete);
+      const row = document.getElementById(`row-${qrToDelete}`);
+      if (row) row.remove();
+      
+      const countEl = document.getElementById('stat-total-qrs');
+      if (countEl) {
+        let cnt = parseInt(countEl.textContent, 10);
+        if (!isNaN(cnt) && cnt > 0) countEl.textContent = cnt - 1;
+      }
+      closeDeleteModal();
+    } catch (err) {
+      console.error('Failed to delete QR:', err);
+      alert('Failed to delete the QR code.');
+    } finally {
+      btn.textContent = oldText;
+      btn.disabled = false;
+    }
+  });
 </script>
 
 </body>

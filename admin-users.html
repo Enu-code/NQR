@@ -5,11 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>User Management — NQR Admin</title>
 <script src="config.js"></script>
-<script src="backend.js"></script>
+<script src="backend.js?v=7"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=DM+Sans:ital,opsz,wght@0,9..40,300..1000;1,9..40,300..1000&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="styles.css?v=3"/>
-<link rel="stylesheet" href="admin.css?v=4"/>
+<link rel="stylesheet" href="admin.css?v=8"/>
 </head>
 <body class="dash-body">
+  <!-- Background Effects -->
+  <div class="glow-orb glow-orb--1"></div>
+  <div class="glow-orb glow-orb--2"></div>
+  <div class="glow-orb glow-orb--3"></div>
 
 <script>
   // ── INTERACTION FIX: Wake up page for dashboard entry ──
@@ -29,8 +34,10 @@
 <div class="dash-layout">
   <header class="dash-top-nav">
     <div class="dash-nav-container">
-      <div class="dash-brand">
-        <div class="nav__logo-mark">N</div>
+      <div class="dash-brand" onclick="window.location.href='index.html'">
+        <div class="vault-logo-mark">
+          <img src="assets/logo.png" alt="NQR Logo" />
+        </div>
         <div class="nav__logo-text">NQR</div>
       </div>
       
@@ -83,7 +90,7 @@
         <h1 class="t-h3">User Management</h1>
         <p class="t-small text-muted mt-xs">Detailed listing of users, their authentication methods, and platform activity.</p>
       </div>
-      <div class="flex gap-md">
+      <div class="flex gap-md items-center">
         <div class="card card--static card-glass" style="min-width:160px">
           <div class="card-inner p-md">
             <div class="t-label text-muted" style="font-size:0.65rem">Total Users</div>
@@ -140,8 +147,10 @@
       const totalUsersEl = document.getElementById('adminTotalUsers');
       if (totalUsersEl) totalUsersEl.textContent = stats.totalUsers || 0;
 
-      const users = await window.API.getAllUsers();
-      const allQrs = await window.API.getAllQRs();
+      let usersResponse = await window.API.getAllUsers();
+      let users = Array.isArray(usersResponse) ? usersResponse : (usersResponse.results || []);
+      let allQrsResponse = await window.API.getAllQRs();
+      let allQrs = Array.isArray(allQrsResponse) ? allQrsResponse : (allQrsResponse.results || []);
       const tbody = document.querySelector('#userDirectoryTable tbody');
       const emptyRow = document.getElementById('emptyDirectoryRow');
 
@@ -169,19 +178,19 @@
               </div>
             </td>
             <td style="text-align:center">
-              <div class="t-small">${user.email}</div>
-              <div class="tag ${isTester ? 'tag--red' : 'tag--blue'}" style="font-size:0.6rem; margin-top:4px">
+              <div class="t-small" style="text-align:center">${user.email}</div>
+              <div class="tag ${isTester ? 'tag--red' : 'tag--blue'}" style="font-size:0.6rem; margin:4px auto 0; display:inline-flex; justify-content:center">
                 ${isTester ? 'System Account' : 'Verified User'}
               </div>
             </td>
             <td style="text-align:center">
-              <div class="t-small">${new Date(user.createdAt || user.id).toLocaleDateString()}</div>
+              <div class="t-small" style="text-align:center">${new Date(user.date_joined || user.id * 1000000000).toLocaleDateString()}</div>
             </td>
             <td style="text-align:center">
-              <div class="t-small" style="font-weight:600">${qrCount}</div>
+              <div class="t-small" style="font-weight:600; text-align:center">${qrCount}</div>
             </td>
             <td style="text-align:center">
-              <div class="dash-status dash-status--active">Active</div>
+              <div class="dash-status dash-status--active" style="display:inline-flex; justify-content:center; margin: 0 auto">Active</div>
             </td>
           `;
           tbody.appendChild(tr);
