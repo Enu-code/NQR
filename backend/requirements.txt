@@ -1,0 +1,9 @@
+Django>=4.0
+python-dotenv
+django-cors-headers
+djangorestframework
+djangorestframework-simplejwt
+segno
+requests
+gunicorn
+whitenoise
