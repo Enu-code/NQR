@@ -2,7 +2,12 @@ from django.contrib import admin
 from django.urls import path, include
 from qr_engine import views as qr_views
 
+from admin_api.views import admin_login_view
+
 urlpatterns = [
+    # 🚨 BULLETPROOF ROUTING: Explicit path at the root level
+    path('api/admin/login/', admin_login_view, name='admin-login'),
+    
     path('', include('admin_api.urls')),
     path('admin/', admin.site.urls),
     path('api/auth/', include('auth_system.urls')),
