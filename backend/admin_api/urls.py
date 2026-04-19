@@ -13,9 +13,12 @@ router.register(r'qrs', QRCodeViewSet, basename='qrs')
 router.register(r'leads', LeadViewSet, basename='leads')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # Explicit paths first (higher priority)
     path('api/admin/login/', admin_login_view, name='admin-login'),
     path('api/admin/stats/', PlatformStatsView.as_view(), name='admin-stats'),
     path('api/admin/password-reset/', PasswordResetView.as_view(), name='admin-password-reset'),
     path('api/user/settings/', UserSettingsView.as_view(), name='user-settings'),
+
+    # Router logic
+    path('', include(router.urls)),
 ]
