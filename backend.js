@@ -338,21 +338,17 @@ class NQRBackend {
   ━━━━━━━━━━━━━━━━━━━━━━━━ */
 
   async requestOtp(email, password, mode = 'login') {
-    return this.request('/auth/request-otp', 'POST', { email, password, type: 'OTP', action: mode });
+    return this.request('/api/auth/request-otp/', 'POST', { email, password, mode });
   }
 
   async resetPassword(email, otp, newPassword) {
-    return this.request('/auth/reset-password', 'POST', { email, otp, newPassword });
+    return this.request('/api/auth/reset-password/', 'POST', { email, otp, newPassword });
   }
 
   async signup(userData, otp) {
-    const result = await this.request('/auth/signup', 'POST', { 
-      email: userData.email, 
-      otp: otp,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      password: userData.password
-    });
+    // Django verify-otp handles both
+    return this.login(userData.email, otp, false);
+  }
 
     // ── Store JWT if returned ──
     if (result.token) NQRAuth.saveToken(result.token);
@@ -365,8 +361,8 @@ class NQRBackend {
     return result;
   }
 
-  async login(email, password) {
-    const result = await this.request('/auth/login', 'POST', { email, password });
+  async login(email, otp_code, remember_me = false) {
+    const result = await this.request('/api/auth/verify-otp/', 'POST', { email, otp_code, remember_me });
 
     // ── Store JWT / Session info ──
     if (result.token) NQRAuth.saveToken(result.token);
@@ -399,19 +395,19 @@ class NQRBackend {
   ━━━━━━━━━━━━━━━━━━━━━━━━ */
 
   async saveQR(qrData) {
-    return this.request('/qrs', 'POST', qrData);
+    return this.request('/api/qr/save/', 'POST', qrData);
   }
 
   async updateQR(qrId, updates) {
-    return this.request(`/qrs/${encodeURIComponent(qrId)}`, 'PATCH', updates);
+    return this.request('/api/qr/save/', 'POST', { ...updates, qrId });
   }
 
   async deleteQR(qrId) {
-    return this.request(`/qrs/${encodeURIComponent(qrId)}`, 'DELETE');
+    return this.request(`/api/qr/${encodeURIComponent(qrId)}/delete/`, 'DELETE');
   }
 
   async getHistory() {
-    return this.request('/qrs', 'GET', null, { silent: true });
+    return this.request('/api/qr/list/', 'GET', null, { silent: true });
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -427,7 +423,7 @@ class NQRBackend {
   }
 
   async saveLead(leadData) {
-    return this.request('/leads', 'POST', leadData);
+    return this.request('/api/leads/', 'POST', leadData);
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━

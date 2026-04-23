@@ -655,22 +655,8 @@ async function handleAuthSubmit(e, form) {
     submitBtn.disabled = true;
 
     try {
-      const mode = body.getAttribute('data-mode');
-      if (mode === 'signup') {
-        const nameInput = document.getElementById('authName');
-        const fullName  = nameInput ? nameInput.value.trim() : 'User';
-        const userData = {
-          email,
-          firstName: fullName.split(' ')[0] || 'User',
-          lastName: fullName.split(' ').slice(1).join(' ') || '',
-          password: savedPassword
-        };
-        await window.API.signup(userData, otpCode);
-      } else {
-        // Note: The current Lambda login uses password, 
-        // but to keep the OTP flow we verify password here.
-        await window.API.login(email, savedPassword);
-      }
+      const rememberMe = document.getElementById('rememberMe')?.checked || false;
+      await window.API.login(email, otpCode, rememberMe);
       window.location.href = 'app-generator.html';
     } catch (err) {
       errorMsg.textContent = 'Invalid or expired code. Please try again.';
