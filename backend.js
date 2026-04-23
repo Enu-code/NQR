@@ -338,7 +338,11 @@ class NQRBackend {
   ━━━━━━━━━━━━━━━━━━━━━━━━ */
 
   async requestOtp(email, password, mode = 'login') {
-    return this.request('/api/auth/request-otp/', 'POST', { email, password, mode });
+    const res = await this.request('/api/auth/request-otp/', 'POST', { email, password, mode });
+    if (res.message) {
+      NQRToast.show(res.message, 'info');
+    }
+    return res;
   }
 
   async resetPassword(email, otp, newPassword) {
