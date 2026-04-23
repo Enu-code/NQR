@@ -618,7 +618,7 @@ async function handleAuthSubmit(e, form) {
          payload.fullName = nameInput ? nameInput.value.trim() : 'User';
       }
 
-      const res = await window.API.requestOtp(payload.email, payload.password);
+      const res = await window.API.requestOtp(payload.email, payload.password, mode);
       // Success! Transition to OTP step
       currentStep = 'OTP';
       document.getElementById('emailGroup').style.display = 'none';
