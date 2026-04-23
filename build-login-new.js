@@ -540,6 +540,7 @@ const formContent = document.getElementById('formContent');
 const body = document.body;
 
 let currentStep = 'EMAIL'; // EMAIL -> OTP
+let savedPassword = '';
 
 function handleSwitch(mode) {
   overlay.classList.add('is-active');
@@ -621,11 +622,15 @@ async function handleAuthSubmit(e, form) {
          payload.fullName = nameInput ? nameInput.value.trim() : 'User';
       }
 
+      savedPassword = payload.password; // Store for second step
       const res = await window.API.requestOtp(payload.email, payload.password, mode);
       // Success! Transition to OTP step
       currentStep = 'OTP';
       document.getElementById('emailGroup').style.display = 'none';
       document.getElementById('passwordGroup').style.display = 'none';
+      if (document.getElementById('fullNameGroup')) {
+        document.getElementById('fullNameGroup').style.display = 'none';
+      }
       document.getElementById('otpSection').style.display = 'block';
       document.getElementById('otpHelpText').textContent = 'Enter the code sent to your ' + email + ' inbox.';
       btnLabel.textContent = 'Verify & Sign In';
@@ -653,8 +658,22 @@ async function handleAuthSubmit(e, form) {
     submitBtn.disabled = true;
 
     try {
-      const rememberMe = document.getElementById('rememberMe')?.checked || false;
-      await window.API.login(email, otpCode, rememberMe);
+      const mode = body.getAttribute('data-mode');
+      if (mode === 'signup') {
+        const nameInput = document.getElementById('authName');
+        const fullName  = nameInput ? nameInput.value.trim() : 'User';
+        const userData = {
+          email,
+          firstName: fullName.split(' ')[0] || 'User',
+          lastName: fullName.split(' ').slice(1).join(' ') || '',
+          password: savedPassword
+        };
+        await window.API.signup(userData, otpCode);
+      } else {
+        // Note: The current Lambda login uses password, 
+        // but to keep the OTP flow we verify password here.
+        await window.API.login(email, savedPassword);
+      }
       window.location.href = 'app-generator.html';
     } catch (err) {
       errorMsg.textContent = 'Invalid or expired code. Please try again.';

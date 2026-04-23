@@ -338,20 +338,20 @@ class NQRBackend {
   ━━━━━━━━━━━━━━━━━━━━━━━━ */
 
   async requestOtp(email, password, mode = 'login') {
-    return this.request('/api/auth/request-otp/', 'POST', { email, password, mode });
+    return this.request('/auth/request-otp', 'POST', { email, password, type: 'OTP', action: mode });
   }
 
   async resetPassword(email, otp, newPassword) {
-    return this.request('/api/auth/reset-password/', 'POST', { email, otp, newPassword });
+    return this.request('/auth/reset-password', 'POST', { email, otp, newPassword });
   }
 
   async signup(userData, otp) {
-    // Consolidated with login: both use verify-otp logic on the backend
-    const result = await this.request('/api/auth/verify-otp/', 'POST', { 
+    const result = await this.request('/auth/signup', 'POST', { 
       email: userData.email, 
-      otp_code: otp,
-      first_name: userData.firstName,
-      last_name: userData.lastName
+      otp: otp,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      password: userData.password
     });
 
     // ── Store JWT if returned ──
@@ -365,8 +365,8 @@ class NQRBackend {
     return result;
   }
 
-  async login(email, otp_code, remember_me = false) {
-    const result = await this.request('/api/auth/verify-otp/', 'POST', { email, otp_code, remember_me });
+  async login(email, password) {
+    const result = await this.request('/auth/login', 'POST', { email, password });
 
     // ── Store JWT / Session info ──
     if (result.token) NQRAuth.saveToken(result.token);
@@ -399,21 +399,19 @@ class NQRBackend {
   ━━━━━━━━━━━━━━━━━━━━━━━━ */
 
   async saveQR(qrData) {
-    return this.request('/api/qr/save/', 'POST', qrData);
+    return this.request('/qrs', 'POST', qrData);
   }
 
   async updateQR(qrId, updates) {
-    return this.request('/api/qr/save/', 'POST', { ...updates, qrId });
+    return this.request(`/qrs/${encodeURIComponent(qrId)}`, 'PATCH', updates);
   }
 
   async deleteQR(qrId) {
-    return this.request(`/api/qr/${encodeURIComponent(qrId)}/delete/`, 'DELETE');
+    return this.request(`/qrs/${encodeURIComponent(qrId)}`, 'DELETE');
   }
 
   async getHistory() {
-    // silent=true so a cold-start or transient failure doesn't show the
-    // "No internet connection" toast when just loading the settings tab.
-    return this.request('/api/qr/list/', 'GET', null, { silent: true });
+    return this.request('/qrs', 'GET', null, { silent: true });
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -429,7 +427,7 @@ class NQRBackend {
   }
 
   async saveLead(leadData) {
-    return this.request('/api/leads/', 'POST', leadData);
+    return this.request('/leads', 'POST', leadData);
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━
