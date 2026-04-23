@@ -350,17 +350,6 @@ class NQRBackend {
     return this.login(userData.email, otp, false);
   }
 
-    // ── Store JWT if returned ──
-    if (result.token) NQRAuth.saveToken(result.token);
-
-    // ── Legacy sessionStorage for existing UI compatibility ──
-    sessionStorage.setItem('userLoggedIn', 'true');
-    sessionStorage.setItem('userEmail', userData.email);
-    sessionStorage.setItem('userName', `${userData.firstName} ${userData.lastName}`.trim());
-
-    return result;
-  }
-
   async login(email, otp_code, remember_me = false) {
     const result = await this.request('/api/auth/verify-otp/', 'POST', { email, otp_code, remember_me });
 
