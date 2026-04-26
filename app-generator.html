@@ -115,6 +115,53 @@ tailwind.config = {
     outline: none !important;
   }
 
+  /* ── Custom Dropdown ── */
+  .custom-select-wrapper {
+    position: relative;
+    user-select: none;
+  }
+  .custom-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .custom-select-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s var(--ease-out);
+    padding: 0.5rem;
+    background: rgba(20, 24, 35, 0.95) !important; /* Denser background for readability */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  .custom-select-wrapper.open .custom-select-options {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .custom-select-option {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    color: rgba(255,255,255,0.7);
+  }
+  .custom-select-option:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+  }
+  .custom-select-option.selected {
+    background: var(--brand-red);
+    color: #fff;
+  }
+
   /* ── CTA Button ── */
   .btn-premium {
     background: linear-gradient(135deg, #D90429 0%, #930018 100%);
@@ -1275,11 +1322,85 @@ tailwind.config = {
   // ── START ──────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     initQR();
+    convertSelects(); // Convert selects to premium dropdowns
     setTimeout(() => {
         loadUserSettings();
         if(window.location.hash === '#settings') document.querySelector('[data-target="tab-settings"]')?.click();
     }, 500);
   });
+
+  // ── CUSTOM SELECT CONVERSION ────────────────────────────────
+  function convertSelects() {
+    document.querySelectorAll('select.premium-input').forEach(select => {
+      // Avoid double conversion
+      if (select.nextElementSibling && select.nextElementSibling.classList.contains('custom-select-wrapper')) return;
+      if (select.parentElement.classList.contains('custom-select-wrapper')) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'custom-select-wrapper ' + select.className;
+      // Copy over some styles if needed, but wrapper already has premium-input class
+      wrapper.style.width = select.style.width || '100%';
+      wrapper.style.padding = '0'; // We'll handle padding on trigger
+      
+      const trigger = document.createElement('div');
+      trigger.className = 'custom-select-trigger px-4 py-4';
+      if (select.id === 'fileExpireSelect') trigger.className = 'custom-select-trigger px-3 py-2';
+
+      trigger.innerHTML = `
+        <span class="truncate">${select.options[select.selectedIndex]?.text || ''}</span>
+        <span class="material-symbols-outlined text-white/30" style="font-size:1.2rem">expand_more</span>
+      `;
+      
+      const optionsContainer = document.createElement('div');
+      optionsContainer.className = 'custom-select-options premium-glass rounded-2xl';
+      
+      Array.from(select.options).forEach((opt, idx) => {
+        const option = document.createElement('div');
+        option.className = 'custom-select-option' + (idx === select.selectedIndex ? ' selected' : '');
+        option.textContent = opt.text;
+        option.dataset.value = opt.value;
+        
+        option.addEventListener('click', (e) => {
+          e.stopPropagation();
+          select.value = opt.value;
+          
+          // Trigger events
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          select.dispatchEvent(new Event('input', { bubbles: true }));
+          
+          trigger.querySelector('span').textContent = opt.text;
+          optionsContainer.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+          option.classList.add('selected');
+          wrapper.classList.remove('open');
+        });
+        optionsContainer.appendChild(option);
+      });
+      
+      // Hide original select
+      select.style.display = 'none';
+      select.setAttribute('aria-hidden', 'true');
+      
+      // Insert wrapper
+      select.parentNode.insertBefore(wrapper, select);
+      wrapper.appendChild(trigger);
+      wrapper.appendChild(optionsContainer);
+      // Keep select inside or next to wrapper for form submission/access
+      wrapper.appendChild(select); 
+      
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = wrapper.classList.contains('open');
+        // Close others
+        document.querySelectorAll('.custom-select-wrapper').forEach(w => w.classList.remove('open'));
+        if (!isOpen) wrapper.classList.add('open');
+      });
+    });
+    
+    // Global click-to-close
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.custom-select-wrapper').forEach(w => w.classList.remove('open'));
+    });
+  }
 </script>
 </body>
 </html>
