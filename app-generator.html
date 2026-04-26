@@ -384,8 +384,11 @@ tailwind.config = {
             <label class="switch"><input type="checkbox" id="passwordProtectToggle"/><span class="switch-slider"></span></label>
           </div>
           <div id="pinInputWrap" style="display:none;margin-top:12px">
-            <input type="text" class="form-input" id="filePinInput" placeholder="Set a 4-8 digit PIN (e.g. 1234)" maxlength="8" style="letter-spacing:0.2em"/>
-            <div class="t-small text-muted mt-xs">Scanners must enter this PIN before the final redirect.</div>
+            <input type="text" class="w-full premium-input px-4 py-4 text-center font-bold tracking-[0.4em] text-lg" id="filePinInput" placeholder="SET PIN" maxlength="8"/>
+            <div class="t-small text-muted mt-xs flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[14px] text-primary">security</span>
+              Locked access. Scanners must entered this PIN to continue.
+            </div>
           </div>
 
           <hr class="divider" style="margin:var(--sp-md) 0"/>
@@ -1089,7 +1092,8 @@ tailwind.config = {
       const qrData = {
         name: (name || `${type.toUpperCase()} QR`).trim(),
         type: type, content: currentContent,
-        options: currentOptions, smart: smart
+        options: { ...currentOptions, ...smart }, // Unified options for Redirector compatibility
+        smart: smart
       };
       const result = await window.API.saveQR(qrData);
       currentQrId = result.qrId;
@@ -1119,6 +1123,27 @@ tailwind.config = {
   closeModal?.addEventListener('click', closeQrModal);
   modalBackdrop?.addEventListener('click', closeQrModal);
   
+  // ── SECURITY TOGGLES (Premium Animations) ────────────────
+  document.getElementById('passwordProtectToggle')?.addEventListener('change', (e) => {
+    const wrap = document.getElementById('pinInputWrap');
+    if (e.target.checked) {
+      wrap.style.display = 'block';
+      gsap.fromTo(wrap, { opacity: 0, height: 0, y: -10 }, { opacity: 1, height: 'auto', y: 0, duration: 0.5, ease: "power3.out" });
+    } else {
+      gsap.to(wrap, { opacity: 0, height: 0, y: -10, duration: 0.4, ease: "power3.in", onComplete: () => wrap.style.display = 'none' });
+    }
+  });
+
+  document.getElementById('leadCaptureToggle')?.addEventListener('change', (e) => {
+    const wrap = document.getElementById('leadCaptureWrap');
+    if (e.target.checked) {
+      wrap.style.display = 'block';
+      gsap.fromTo(wrap, { opacity: 0, height: 0, y: -10 }, { opacity: 1, height: 'auto', y: 0, duration: 0.5, ease: "power3.out" });
+    } else {
+      gsap.to(wrap, { opacity: 0, height: 0, y: -10, duration: 0.4, ease: "power3.in", onComplete: () => wrap.style.display = 'none' });
+    }
+  });
+
   function copyShortLink() {
     const input = document.getElementById('modalShortLink');
     input.select(); document.execCommand('copy');
