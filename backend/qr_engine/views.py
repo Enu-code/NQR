@@ -67,10 +67,12 @@ def list_qrs(request):
     if not user:
         return cors_json_response({'error': 'Unauthorized'}, status=401)
 
-    from .models import QRCode
+    from .models import QRCode, Scan
     qrs = QRCode.objects.filter(owner=user).order_by('-created_at')
-    data = [
-        {
+    data = []
+    for qr in qrs:
+        scans_count = Scan.objects.filter(qr=qr).count()
+        data.append({
             'qrId':      qr.qr_id,
             'name':      qr.config.get('name', 'Untitled QR'),
             'type':      qr.config.get('type', 'link'),
@@ -78,9 +80,9 @@ def list_qrs(request):
             'shortUrl':  qr.config.get('shortUrl', f'neverq.in/go/{qr.qr_id}'),
             'createdAt': qr.created_at.isoformat(),
             'options':   qr.config.get('options', {}),
-        }
-        for qr in qrs
-    ]
+            'smart':     qr.config.get('smart', {}),
+            'scans':     scans_count,
+        })
     return cors_json_response(data)
 
 
@@ -110,6 +112,7 @@ def save_qr(request):
         'type':     body.get('type', 'link'),
         'shortUrl': body.get('shortUrl', f'neverq.in/go/{qr_id}'),
         'options':  body.get('options', {}),
+        'smart':    body.get('smart', {}),
     }
 
     qr, created = QRCode.objects.update_or_create(

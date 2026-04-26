@@ -1148,20 +1148,44 @@ tailwind.config = {
         tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center opacity-30">No history found.</td></tr>';
         return;
       }
-      tbody.innerHTML = history.reverse().map(qr => `
-        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-          <td class="px-6 py-4">
-            <div class="font-bold">${qr.name || 'Untitled Engine'}</div>
-            <div class="text-[10px] opacity-30 uppercase">${new Date(qr.createdAt).toLocaleDateString()}</div>
-          </td>
-          <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-white/5 text-[9px] uppercase font-bold">${qr.type}</span></td>
-          <td class="px-6 py-4 font-mono text-primary text-[10px]">${qr.qrId}</td>
-          <td class="px-6 py-4 text-center">
-             <button class="p-2 hover:text-primary transition-colors" onclick="editQR('${qr.qrId}')"><span class="material-symbols-outlined text-lg">edit</span></button>
-             <button class="p-2 hover:text-primary transition-colors" onclick="deleteHistoryQR('${qr.qrId}')"><span class="material-symbols-outlined text-lg">delete</span></button>
-          </td>
-        </tr>
-      `).join('');
+      
+      tbody.innerHTML = history.reverse().map(qr => {
+        const smart = qr.smart || {};
+        const expiryType = smart.expiresAt || 'never';
+        const createdAt = new Date(qr.createdAt).getTime();
+        const now = Date.now();
+        let expired = false;
+        let expiryReason = '';
+
+        if (expiryType === '1h' && now - createdAt > 3600000) { expired = true; expiryReason = 'Time Expired (1h)'; }
+        else if (expiryType === '24h' && now - createdAt > 86400000) { expired = true; expiryReason = 'Time Expired (24h)'; }
+        else if (expiryType === '7d' && now - createdAt > 604800000) { expired = true; expiryReason = 'Time Expired (7d)'; }
+        else if (expiryType === '1scan' && (qr.scans || 0) >= 1) { expired = true; expiryReason = 'Max Scans Reached'; }
+
+        const statusLabel = expired 
+          ? `<span class="px-2 py-0.5 rounded bg-red-500/10 text-red-500 text-[8px] uppercase font-black tracking-tighter">Expired: ${expiryReason}</span>`
+          : `<span class="px-2 py-0.5 rounded bg-green-500/10 text-green-500 text-[8px] uppercase font-black tracking-tighter">Active</span>`;
+
+        return `
+          <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors ${expired ? 'opacity-60' : ''}">
+            <td class="px-6 py-4">
+              <div class="flex flex-col gap-1">
+                <div class="font-bold flex items-center gap-2">${qr.name || 'Untitled Engine'} ${statusLabel}</div>
+                <div class="text-[10px] opacity-30 uppercase">${new Date(qr.createdAt).toLocaleDateString()} at ${new Date(qr.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+              </div>
+            </td>
+            <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-white/5 text-[9px] uppercase font-bold">${qr.type}</span></td>
+            <td class="px-6 py-4 font-mono text-primary text-[10px]">${qr.qrId}</td>
+            <td class="px-6 py-4 text-center">
+               ${!expired 
+                 ? `<button class="p-2 hover:text-primary transition-colors" onclick="editQR('${qr.qrId}')"><span class="material-symbols-outlined text-lg">edit</span></button>`
+                 : `<button class="p-2 opacity-20 cursor-not-allowed" title="Expired engines cannot be edited" disabled><span class="material-symbols-outlined text-lg">edit_off</span></button>`
+               }
+               <button class="p-2 hover:text-primary transition-colors" onclick="deleteHistoryQR('${qr.qrId}')"><span class="material-symbols-outlined text-lg">delete</span></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     } catch(e) { tbody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-primary/50">Connectivity Error</td></tr>`; }
   }
 
