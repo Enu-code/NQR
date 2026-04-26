@@ -147,6 +147,28 @@ tailwind.config = {
     border-radius: 16px !important;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
     backdrop-filter: blur(30px) saturate(150%);
+    max-height: 240px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .custom-select-options::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-select-options::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  .custom-select-options::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  /* Ensure parents don't clip the dropdown */
+  .card--static:has(.custom-select-wrapper), 
+  .premium-glass:has(.custom-select-wrapper) {
+    overflow: visible !important;
+  }
+  /* Elevation during interaction */
+  .custom-select-wrapper.open {
+    z-index: 2500;
   }
   .custom-select-wrapper.open .custom-select-options {
     opacity: 1;
