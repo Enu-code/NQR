@@ -379,8 +379,17 @@ exports.handler = async (event) => {
       if (!result.Item) return response(404, { error: "QR not found" }, event);
 
       const item      = result.Item;
-      // High-compatibility options lookup (handles Django-saved and Lambda-saved data)
-      const options   = item.options || (item.config && item.config.options) || (item.config && item.config.smart) || item.smart || {};
+      // Ultra-flexible lookup: check root, options, config, and smart paths
+      const options   = {
+        ...(item.options || {}),
+        ...(item.config?.options || {}),
+        ...(item.config?.smart || {}),
+        ...(item.smart || {}),
+        // Explicit overrides for critical fields if they exist at root
+        password:  item.password  || item.options?.password  || item.config?.options?.password  || item.config?.smart?.password  || item.smart?.password,
+        expiresAt: item.expiresAt || item.options?.expiresAt || item.config?.options?.expiresAt || item.config?.smart?.expiresAt || item.smart?.expiresAt,
+        leadCapture: item.leadCapture || item.options?.leadCapture || item.config?.options?.leadCapture || item.smart?.leadCapture
+      };
       const scans     = item.scans   || 0;
       const createdAt = new Date(item.createdAt || item.created_at || Date.now()).getTime();
       const now       = Date.now();

@@ -1097,10 +1097,17 @@ tailwind.config = {
 
     try {
       const smart = await buildSmartOptions();
+      const finalOptions = { 
+        ...currentOptions, 
+        ...smart,
+        password: smart.password, // Explicit root level for redirector
+        expiresAt: smart.expiresAt
+      };
+
       const qrData = {
         name: (name || `${type.toUpperCase()} QR`).trim(),
         type: type, content: currentContent,
-        options: { ...currentOptions, ...smart }, // Unified options for Redirector compatibility
+        options: finalOptions,
         smart: smart
       };
       const result = await window.API.saveQR(qrData);
@@ -1119,10 +1126,19 @@ tailwind.config = {
       if (isDynamic) {
         finalLink = `https://${shortBase}${currentQrId}`;
         // Regenerate the visual QR with the short link so the download is dynamic
-        await generateQRCode(finalLink, currentOptions);
+        await generateQRCode(finalLink, finalOptions);
       }
 
       document.getElementById('modalShortLink').value = finalLink;
+      
+      // Update modal info
+      const infoSpan = document.querySelector('#qrModal .text-[10px].opacity-30');
+      if (infoSpan) {
+        let statusText = isDynamic ? 'Dynamic Link • ' : 'Static Link • ';
+        if (smart.password) statusText += 'PIN Protected • ';
+        if (smart.expiresAt !== 'never') statusText += `Expires: ${smart.expiresAt}`;
+        infoSpan.innerText = statusText.replace(/ • $/, '');
+      }
       
       updatePreview(true);
       qrModal.classList.add('active');
