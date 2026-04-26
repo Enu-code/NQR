@@ -737,7 +737,7 @@ tailwind.config = {
       
       <div class="qr-modal__details flex-1 space-y-8">
         <div class="space-y-4">
-          <div class="section-badge px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black tracking-[0.2em] uppercase w-fit">Engine Synchronized</div>
+          <div id="modalSecurityStatus" class="section-badge px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black tracking-[0.2em] uppercase w-fit">Engine Synchronized</div>
           <h2 class="font-headline text-5xl font-black tracking-tighter">Your QR is ready.</h2>
           <p class="font-body text-white/50 text-large leading-relaxed">Beautifully crafted, secure, and brand-perfect. Provisioned on Stockholm-1 nodes for instant global redirect.</p>
         </div>
@@ -1131,13 +1131,13 @@ tailwind.config = {
 
       document.getElementById('modalShortLink').value = finalLink;
       
-      // Update modal info
-      const infoSpan = document.querySelector('#qrModal .text-[10px].opacity-30');
+      // Update modal info (Fixed selector)
+      const infoSpan = document.getElementById('modalSecurityStatus');
       if (infoSpan) {
         let statusText = isDynamic ? 'Dynamic Link • ' : 'Static Link • ';
         if (smart.password) statusText += 'PIN Protected • ';
         if (smart.expiresAt !== 'never') statusText += `Expires: ${smart.expiresAt}`;
-        infoSpan.innerText = statusText.replace(/ • $/, '');
+        infoSpan.innerText = (statusText.replace(/ • $/, '')).toUpperCase();
       }
       
       updatePreview(true);
