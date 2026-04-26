@@ -1104,7 +1104,17 @@ tailwind.config = {
       } else if(userSettings.subdomainType === 'custom' && userSettings.customDomain) {
         shortBase = `${userSettings.customDomain}/go/`;
       }
-      document.getElementById('modalShortLink').value = `https://${shortBase}${result.qrId}`;
+      
+      const isDynamic = document.getElementById('dynamicLinkToggle')?.checked;
+      let finalLink = currentContent;
+
+      if (isDynamic) {
+        finalLink = `https://${shortBase}${currentQrId}`;
+        // Regenerate the visual QR with the short link so the download is dynamic
+        await generateQRCode(finalLink, currentOptions);
+      }
+
+      document.getElementById('modalShortLink').value = finalLink;
       
       updatePreview(true);
       qrModal.classList.add('active');
