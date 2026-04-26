@@ -394,6 +394,10 @@ exports.handler = async (event) => {
       const createdAt = new Date(item.createdAt || item.created_at || Date.now()).getTime();
       const now       = Date.now();
 
+      // Extract critical security fields with type-safety
+      const activePassword = String(item.password || options.password || "").trim();
+      const activeExpiry   = options.expiresAt || "never";
+
       // 1. Check Expiry
       const expiryType = options.expiresAt || 'never';
       let isExpired = false;
@@ -406,8 +410,8 @@ exports.handler = async (event) => {
       }
 
       // 2. Check Password (PIN)
-      if (options.password && options.password !== pinProvided) {
-        return responseHTML(200, `<div style="text-align:center;padding:50px;font-family:sans-serif;color:#fff;background:#131313;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center"><div style="background:rgba(255,255,255,0.04);padding:40px;border-radius:24px;max-width:400px;width:100%;border:1px solid rgba(255,255,255,0.08)"><div style="font-size:40px;margin-bottom:20px">🔒</div><h1 style="font-size:20px;margin-bottom:10px">Password Protected</h1><p style="color:rgba(255,255,255,0.5);margin-bottom:30px;font-size:14px">Enter the PIN to access this link.</p><form id="pf" style="display:flex;flex-direction:column;gap:15px"><input type="password" id="pi" placeholder="Enter PIN" maxlength="8" style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.15);padding:15px;border-radius:12px;color:#fff;text-align:center;font-size:20px;letter-spacing:0.3em;outline:none"/><button type="submit" style="background:#D90429;color:#fff;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;font-size:16px">Access Link</button></form><p id="em" style="color:#D90429;margin-top:15px;font-size:13px;display:none">Incorrect PIN.</p></div></div><script>document.getElementById('pf').onsubmit=(e)=>{e.preventDefault();const p=document.getElementById('pi').value;if(!p)return;window.location.href=window.location.pathname+'?pin='+p};if(window.location.search.includes('pin='))document.getElementById('em').style.display='block'</script>`, event);
+      if (activePassword && activePassword !== String(pinProvided || "")) {
+        return responseHTML(200, `<div style="text-align:center;padding:50px;font-family:sans-serif;color:#fff;background:#131313;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center"><div style="background:rgba(255,255,255,0.04);padding:40px;border-radius:24px;max-width:400px;width:100%;border:1px solid rgba(255,255,255,0.08)"><div style="font-size:40px;margin-bottom:20px">🔒</div><h1 style="font-size:20px;margin-bottom:10px">Password Protected</h1><p style="color:rgba(255,255,255,0.5);margin-bottom:30px;font-size:14px">Enter the PIN to access this link.</p><form id="pf" style="display:flex;flex-direction:column;gap:15px"><input type="password" id="pi" placeholder="Enter PIN" maxlength="8" style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.15);padding:15px;border-radius:12px;color:#fff;text-align:center;font-size:20px;letter-spacing:0.3em;outline:none" autocomplete="off"/><button type="submit" style="background:#D90429;color:#fff;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;font-size:16px">Access Link</button></form><p id="em" style="color:#D90429;margin-top:15px;font-size:13px;display:none">Incorrect PIN.</p></div></div><script>document.getElementById('pf').onsubmit=(e)=>{e.preventDefault();const p=document.getElementById('pi').value;if(!p)return;const url=new URL(window.location.href);url.searchParams.set('pin',p);window.location.href=url.toString()};if(new URLSearchParams(window.location.search).has('pin'))document.getElementById('em').style.display='block'</script>`, event);
       }
 
       // 3. Increment Scan Count
