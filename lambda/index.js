@@ -379,9 +379,10 @@ exports.handler = async (event) => {
       if (!result.Item) return response(404, { error: "QR not found" }, event);
 
       const item      = result.Item;
-      const options   = item.options || {};
+      // High-compatibility options lookup (handles Django-saved and Lambda-saved data)
+      const options   = item.options || (item.config && item.config.options) || (item.config && item.config.smart) || item.smart || {};
       const scans     = item.scans   || 0;
-      const createdAt = new Date(item.createdAt).getTime();
+      const createdAt = new Date(item.createdAt || item.created_at || Date.now()).getTime();
       const now       = Date.now();
 
       // 1. Check Expiry
