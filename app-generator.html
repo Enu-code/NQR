@@ -384,10 +384,18 @@ tailwind.config = {
             <label class="switch"><input type="checkbox" id="passwordProtectToggle"/><span class="switch-slider"></span></label>
           </div>
           <div id="pinInputWrap" style="display:none;margin-top:12px">
-            <input type="text" class="w-full premium-input px-4 py-4 text-center font-bold tracking-[0.4em] text-lg" id="filePinInput" placeholder="SET PIN" maxlength="8"/>
-            <div class="t-small text-muted mt-xs flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[14px] text-primary">security</span>
-              Locked access. Scanners must entered this PIN to continue.
+            <div class="relative">
+              <input type="text" class="w-full premium-input px-4 py-4 text-center font-bold tracking-[0.4em] text-lg pr-12 transition-all duration-300" id="filePinInput" placeholder="SET PIN" maxlength="8"/>
+              <button id="confirmPinBtn" class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-green-500 opacity-0 pointer-events-none transition-all translate-x-2" title="Lock PIN">
+                <span class="material-symbols-outlined text-2xl">check_circle</span>
+              </button>
+            </div>
+            <div class="t-small text-muted mt-xs flex items-center justify-between">
+              <div class="flex items-center gap-1.5" id="pinHintText">
+                <span class="material-symbols-outlined text-[14px] text-primary">security</span>
+                Locked access. Scanners must entered this PIN to continue.
+              </div>
+              <div id="pinStatusText" class="text-green-500 text-[10px] uppercase font-bold opacity-0 transition-opacity">PIN Ready</div>
             </div>
           </div>
 
@@ -1152,6 +1160,37 @@ tailwind.config = {
     } else {
       gsap.to(wrap, { opacity: 0, height: 0, y: -10, duration: 0.4, ease: "power3.in", onComplete: () => wrap.style.display = 'none' });
     }
+  });
+
+  document.getElementById('filePinInput')?.addEventListener('input', (e) => {
+    const val = e.target.value;
+    const btn = document.getElementById('confirmPinBtn');
+    const status = document.getElementById('pinStatusText');
+    if (val.length >= 4) {
+      gsap.to(btn, { opacity: 1, pointerEvents: 'auto', x: 0, duration: 0.3 });
+      status.style.opacity = '0.6';
+    } else {
+      gsap.to(btn, { opacity: 0, pointerEvents: 'none', x: 10, duration: 0.3 });
+      status.style.opacity = '0';
+    }
+  });
+
+  document.getElementById('confirmPinBtn')?.addEventListener('click', () => {
+    const input = document.getElementById('filePinInput');
+    const status = document.getElementById('pinStatusText');
+    const hint = document.getElementById('pinHintText');
+    
+    window.NQRToast.show('Access PIN locked successfully.', 'success');
+    
+    // Premium feedback animation
+    gsap.fromTo(input, 
+      { outline: '2px solid rgba(34, 197, 94, 0)', background: 'rgba(255,255,255,0.03)' }, 
+      { outline: '2px solid rgba(34, 197, 94, 0.4)', background: 'rgba(34, 197, 94, 0.05)', duration: 0.5, yoyo: true, repeat: 1 }
+    );
+    
+    status.innerText = 'PIN VALIDATED';
+    status.style.opacity = '1';
+    hint.style.opacity = '0.4';
   });
 
   function copyShortLink() {
